@@ -41,7 +41,7 @@ microservice-chart:
 
   autoscaling:
     enable: true
-    minReplica: 2
+    minReplica: 1
     maxReplica: 10
     pollingInterval: 30 # seconds
     cooldownPeriod: 300 # seconds
@@ -83,7 +83,7 @@ microservice-chart:
     # app specific
     KAFKA_URL_MESSAGE: 'messages-payments-io-p-messages-weu-prod01-evh-jaas-connection-string' # event-hub write by fn-messages-cqrs
     KAFKA_URL_PAYMENT: 'nodo-dei-pagamenti-biz-evt-pagopa-d-evh-ns01-evh-jaas-connection-string' # event-hub pagopa
-    KAFKA_URL_PAYMENTUPDATES: 'io-payment-updater-io-p-reminder-weu-prod01-evh-jaas-connection-string' # event-hub internal
+    KAFKA_URL_PAYMENTUPDATES: 'io-payment-updater-io-payment-updater-weu-prod01-evh-jaas-connection-string' # event-hub internal
     MONGO_DATABASE_URI: 'mongodb-connection-string' # mongodb internal
     PROXY_ENDPOINT_SUBSCRIPTION_KEY: 'pagopa-proxy-uat-subscription-key' # TODO not used, remove next days
 

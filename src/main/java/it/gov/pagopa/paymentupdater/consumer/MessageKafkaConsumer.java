@@ -33,7 +33,7 @@ public class MessageKafkaConsumer {
 	private String payload = null;
 
 	@KafkaListener(topics = "${kafka.message}", groupId = "consumer-message")
-	public void messageKafkaListener(Payment reminder) throws JsonProcessingException {
+	public void messageKafkaListener(Payment reminder) throws Throwable {
 
 		if (reminder.getContent_type().equals(MessageContentType.PAYMENT)) {
 			log.debug("Received message: {} ", reminder);

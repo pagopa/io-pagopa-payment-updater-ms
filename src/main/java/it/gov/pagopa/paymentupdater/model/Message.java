@@ -9,12 +9,11 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 
 import it.gov.pagopa.paymentupdater.dto.avro.MessageContentType;
 import it.gov.pagopa.paymentupdater.dto.avro.MessageFeatureLevelType;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Getter @Setter @NoArgsConstructor 
 public class Message {
 
 	@Id
