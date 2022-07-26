@@ -1,9 +1,7 @@
 package it.gov.pagopa.paymentupdater.model;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -23,7 +21,6 @@ public class PaymentRetry {
 	String noticeNumber;
 	String payeeFiscalCode;
 	boolean paid;
-	@CreatedDate
 	LocalDateTime insertionDate;
 	double amount;
 	String source;

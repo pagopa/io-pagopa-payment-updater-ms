@@ -54,14 +54,17 @@ public class PaymentRetryToNotifyJob implements Job {
 		log.info(JOB_LOG_NAME + "started");
 		Instant start = Instant.now();
 		List<PaymentRetry> retryList = paymentRetryService.findAll();
-		retryList.stream().forEach(retry-> {
+		retryList.forEach(retry -> {
 			try {
 				producer.sendReminder(mapper.writeValueAsString(retry), kafkaTemplatePayments, producerTopic);
 				log.info("Delete paymentRetry with noticeNumber: {}", retry.getNoticeNumber());
 				paymentRetryService.delete(retry); 
-			} catch (Exception e) {
+			} catch (InterruptedException e) {
 				log.error(e.getMessage());
-			}
+				Thread.currentThread().interrupt();
+			} catch (JsonProcessingException | ExecutionException e) {
+				log.error(e.getMessage());
+			} 
 		});
 		Instant end = Instant.now();
 		log.info(JOB_LOG_NAME + "ended in " + Duration.between(start, end).getSeconds() + " seconds");

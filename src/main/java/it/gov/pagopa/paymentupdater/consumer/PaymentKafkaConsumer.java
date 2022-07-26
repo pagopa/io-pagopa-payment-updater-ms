@@ -1,13 +1,13 @@
 package it.gov.pagopa.paymentupdater.consumer;
 
 
+import java.lang.reflect.UndeclaredThrowableException;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -97,7 +96,7 @@ public class PaymentKafkaConsumer {
 					try {				
 						return producer.sendReminder(message, kafkaTemplatePayments, producerTopic);
 					} catch (Exception e) {
-						throw new RuntimeException(e);
+						throw new UndeclaredThrowableException(e);
 					}
 				});
 		Retry.EventPublisher publisher = retry.getEventPublisher();
@@ -107,6 +106,7 @@ public class PaymentKafkaConsumer {
 				PaymentRetry retryMessage = messageToRetry(message);
 				List<PaymentRetry> paymentList = paymentRetryService.getPaymentRetryByNoticeNumberAndFiscalCode(retryMessage.getNoticeNumber(), retryMessage.getPayeeFiscalCode());
 				if (Objects.nonNull(retryMessage) && paymentList.isEmpty()) {
+					retryMessage.setInsertionDate(LocalDateTime.now());
 					paymentRetryService.save(retryMessage);
 					TelemetryCustomEvent.writeTelemetry("ErrorSendPaymentUpdate", new HashMap<>(), getErrorMap(retryMessage, event));
 				}								
