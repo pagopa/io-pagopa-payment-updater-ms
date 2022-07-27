@@ -44,6 +44,9 @@ public class PaymentRetryToNotifyJob implements Job {
 	@Value("${kafka.paymentupdates}")
 	private String producerTopic;
 
+	@Value("${scheduler.retrytonotify.size}")
+	private int size;
+	
 	@Autowired
 	public PaymentRetryToNotifyJob(PaymentRetryService paymentRetryService) {
 		this.paymentRetryService = paymentRetryService;
@@ -53,7 +56,7 @@ public class PaymentRetryToNotifyJob implements Job {
 	public void execute(JobExecutionContext context) {
 		log.info(JOB_LOG_NAME + "started");
 		Instant start = Instant.now();
-		List<PaymentRetry> retryList = paymentRetryService.findAll();
+		List<PaymentRetry> retryList = paymentRetryService.findTopElements(size).getContent();
 		retryList.forEach(retry -> {
 			try {
 				producer.sendReminder(mapper.writeValueAsString(retry), kafkaTemplatePayments, producerTopic);

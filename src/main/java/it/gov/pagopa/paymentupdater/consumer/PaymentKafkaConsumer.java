@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -55,7 +54,7 @@ public class PaymentKafkaConsumer {
 	private int attemptsMax;
 
 	private CountDownLatch latch = new CountDownLatch(1);
-    @Transactional
+
 	@KafkaListener(topics = "${kafka.payment}", groupId = "consumer-Payment", containerFactory = "kafkaListenerContainerFactoryPaymentRoot")
 	public void paymentKafkaListener(PaymentRoot root) throws JsonProcessingException {
 		log.debug("Received payment-root: {} ", root);
