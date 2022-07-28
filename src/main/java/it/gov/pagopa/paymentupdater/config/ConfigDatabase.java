@@ -12,5 +12,10 @@ public class ConfigDatabase {
 	public String mongoCollectionName(@Value("${mongo.collection.name}") final String collectionName) {
 	    return collectionName;
 	}
+	
+	@Bean("collectionRetry")
+	public String mongoCollectionRetry(@Value("${mongo.collection.retry.name}") final String collectionName) {
+	    return collectionName;
+	}
 
 }

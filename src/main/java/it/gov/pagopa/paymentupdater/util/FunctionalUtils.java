@@ -7,6 +7,10 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 public class FunctionalUtils {
+	
+	private FunctionalUtils() {
+		
+	}
 
     /**
      * Safely gets the first element of a {@link List}

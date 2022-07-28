@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 import io.swagger.annotations.Api;
 
 @Api(tags = "API  HealthCheck")
@@ -23,12 +21,12 @@ import io.swagger.annotations.Api;
 public class HealthcheckController {
 
     @GetMapping(value = "/ready")
-    public ResponseEntity<Object> checkReady() throws JsonProcessingException {
+    public ResponseEntity<Object> checkReady() {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping(value = "/live")
-    public ResponseEntity<Object> checkLive() throws JsonProcessingException {
+    public ResponseEntity<Object> checkLive() {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

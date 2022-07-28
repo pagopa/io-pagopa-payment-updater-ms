@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -20,6 +21,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.gov.pagopa.paymentupdater.dto.PaymentMessage;
@@ -70,7 +72,7 @@ public class PaymentServiceImpl implements PaymentService {
 	}
 
 	@Override
-	public Map<String, Boolean> checkPayment(String rptId) throws JsonProcessingException {
+	public Map<String, Boolean> checkPayment(String rptId) throws JsonMappingException, JsonProcessingException, InterruptedException, ExecutionException {
 		Map<String, Boolean> map = new HashMap<>();
 		map.put("isPaid", false);
 		try {
@@ -98,7 +100,7 @@ public class PaymentServiceImpl implements PaymentService {
 					message.setNoticeNumber(reminder.getContent_paymentData_noticeNumber());
 					message.setPayeeFiscalCode(reminder.getContent_paymentData_payeeFiscalCode());
 					message.setSource("payments");
-					producer.sendReminder(message, kafkaTemplatePayments, mapper, topic);
+					producer.sendReminder(mapper.writeValueAsString(message), kafkaTemplatePayments, topic);
 					map.put("isPaid", true);
 				}
 				return map;

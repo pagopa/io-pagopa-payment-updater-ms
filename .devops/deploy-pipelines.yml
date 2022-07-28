@@ -19,17 +19,31 @@ parameters:
   - name: 'FORCE_REPLACE_DOCKER_IMAGE'
     displayName: 'Force the existing docker image to be replaced'
     type: boolean
+    default: True
+    values:
+      - False
+      - True
+  - name: 'ENVIRONMENT_WEU_BETA'
+    displayName: 'Deploy to weu-beta'
+    type: boolean
+    default: True
+    values:
+      - False
+      - True
+  - name: 'ENVIRONMENT_WEU_PROD_01'
+    displayName: 'Deploy to weu-prod-01'
+    type: boolean
+    default: True
+    values:
+      - False
+      - True
+  - name: 'ENVIRONMENT_WEU_PROD_02'
+    displayName: 'Deploy to weu-prod-02'
+    type: boolean
     default: False
     values:
       - False
       - True
-  # - name: 'environment'
-  #   displayName: 'Force the existing docker image to be replaced'
-  #   type: string
-  #   default: beta
-  #   values:
-  #     - prod
-  #     - beta
 
 # Only manual activations are intended
 trigger: none
@@ -161,6 +175,7 @@ stages:
                       helm dep build $(Pipeline.Workspace)/helm
                 - task: HelmDeploy@0
                   displayName: Helm upgrade
+                  condition: and(succeeded(), eq(${{ parameters.ENVIRONMENT_WEU_BETA }}, True))
                   inputs:
                     kubernetesServiceEndpoint: io-payments-aks-weu-beta
                     namespace: $(NAMESPACE)
@@ -170,11 +185,13 @@ stages:
                     chartName: $(DOCKER_IMAGE)
                     releaseName: $(DOCKER_IMAGE)
                     valueFile: '$(Pipeline.Workspace)/helm/values-beta.yaml'
+                    overrideValues: microservice-chart.image.tag=$(Build.BuildId)
                     install: true
                     waitForExecution: true
                     arguments: '--timeout 5m0s'
                 - task: HelmDeploy@0
                   displayName: Helm upgrade
+                  condition: and(succeeded(), eq(${{ parameters.ENVIRONMENT_WEU_PROD_01 }}, True))
                   inputs:
                     kubernetesServiceEndpoint: io-payments-aks-weu-prod01
                     namespace: $(NAMESPACE)
@@ -184,6 +201,7 @@ stages:
                     chartName: $(DOCKER_IMAGE)
                     releaseName: $(DOCKER_IMAGE)
                     valueFile: '$(Pipeline.Workspace)/helm/values-prod01.yaml'
+                    overrideValues: microservice-chart.image.tag=$(Build.BuildId)
                     install: true
                     waitForExecution: true
                     arguments: '--timeout 5m0s'

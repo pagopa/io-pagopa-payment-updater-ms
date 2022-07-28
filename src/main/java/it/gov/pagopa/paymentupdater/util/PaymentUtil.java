@@ -2,6 +2,8 @@ package it.gov.pagopa.paymentupdater.util;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
@@ -32,5 +34,12 @@ public class PaymentUtil {
 				reminder.setContent_paymentData_noticeNumber(UNDEFINED);
 			}
 		}
+	}
+	
+	public static Map<String, String> getErrorMap(String message) {
+		Map<String, String> properties = new HashMap<>();
+		String creationTime = LocalDateTime.now().toString();
+		properties.put(creationTime, message);
+		return properties;
 	}
 }

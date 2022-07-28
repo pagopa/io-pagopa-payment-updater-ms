@@ -4,11 +4,13 @@ import static it.gov.pagopa.paymentupdater.util.PaymentUtil.checkNullInMessage;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.gov.pagopa.paymentupdater.dto.avro.MessageContentType;
@@ -33,7 +35,7 @@ public class MessageKafkaConsumer {
 	private String payload = null;
 
 	@KafkaListener(topics = "${kafka.message}", groupId = "consumer-message")
-	public void messageKafkaListener(Payment reminder) throws JsonProcessingException {
+	public void messageKafkaListener(Payment reminder) throws JsonMappingException, JsonProcessingException, InterruptedException, ExecutionException {
 
 		if (reminder.getContent_type().equals(MessageContentType.PAYMENT)) {
 			log.debug("Received message: {} ", reminder);
