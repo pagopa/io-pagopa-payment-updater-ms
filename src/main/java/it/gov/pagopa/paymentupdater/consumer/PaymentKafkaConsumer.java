@@ -70,6 +70,7 @@ public class PaymentKafkaConsumer {
 			if (maybeReminderToSend.isPresent()) {
 				var reminderToSend = maybeReminderToSend.get();
 				reminderToSend.setPaidFlag(true);
+				reminderToSend.setPaidDate(LocalDateTime.now());
 				paymentService.save(reminderToSend); 
 	
 				message.setFiscalCode(reminderToSend.getFiscal_code());
