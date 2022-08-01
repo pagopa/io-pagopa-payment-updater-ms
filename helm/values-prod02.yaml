@@ -78,7 +78,7 @@ microservice-chart:
     QUARTZ_SCHEDULER_TIMER_NOTIFY: '0 /3 * ? * *'
     MONGO_RETRY_COLLECTION_NAME: 'payment-retry'
     IS_ACTIVE_MESSAGE_CONSUMER: 'true'
-    IS_ACTIVE_MESSAGE_CONSUMER: 'true'
+    IS_ACTIVE_PAYMENT_CONSUMER: 'true'
 
   envSecret:
     # required
