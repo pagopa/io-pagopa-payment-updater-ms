@@ -9,6 +9,7 @@ import org.springframework.boot.json.JsonParseException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import dto.MessageContentType;
 import it.gov.pagopa.paymentupdater.model.JsonLoader;
 import it.gov.pagopa.paymentupdater.model.Payment;
 import it.gov.pagopa.paymentupdater.util.PaymentUtil;
@@ -41,11 +42,11 @@ public class AvroMessageDeserializer implements Deserializer<Payment> {
 				byte[] binaryJson = converter.convertToJson(bytes, schema.getJsonString());
 				String avroJson = new String(binaryJson);
 				returnObject = mapper.readValue(avroJson, Payment.class);
-				if (StringUtils.isEmpty(returnObject.getContent_paymentData_noticeNumber()) || StringUtils.isEmpty(returnObject.getContent_paymentData_payeeFiscalCode())) throw new JsonParseException();
-			}catch(Exception e) {
+				if (returnObject.getContent_type().equals((MessageContentType.PAYMENT)) && (StringUtils.isEmpty(returnObject.getContent_paymentData_noticeNumber()) || StringUtils.isEmpty(returnObject.getContent_paymentData_payeeFiscalCode()))) throw new JsonParseException();
+			} catch(Exception e) {
 				log.error("Error in deserializing the Reminder for consumer message");
 				log.error(e.getMessage());
-				handleErrorMessage(bytes, e);
+				handleErrorMessage(bytes);
 			}
 
 		}
@@ -53,7 +54,7 @@ public class AvroMessageDeserializer implements Deserializer<Payment> {
 		return returnObject;
 	}
 	
-	private void handleErrorMessage(byte[] bytes, Exception e) {
+	private void handleErrorMessage(byte[] bytes) {
 		try {
 			String message = new String(bytes, StandardCharsets.UTF_8);
 			log.error("The error Message: {}", message);

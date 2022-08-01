@@ -32,13 +32,13 @@ public class PaymentRootDeserializer implements Deserializer<PaymentRoot> {
 		} catch (Exception e) {
 			log.error("Error in deserializing the PaymentRoot for consumer payment-updates");
 			log.error(e.getMessage());
-			handleErrorPaymentMessage(bytes, e);
+			handleErrorPaymentMessage(bytes);
 		}
 		return paymentRoot;
 	}
 	
 	
-	private void handleErrorPaymentMessage(byte[] bytes, Exception e) {
+	private void handleErrorPaymentMessage(byte[] bytes) {
 		try {
 			String message = new String(bytes, StandardCharsets.UTF_8);
 			log.error("The error paymentMessage: {}", message);

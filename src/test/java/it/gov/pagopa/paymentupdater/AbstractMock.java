@@ -17,9 +17,9 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import dto.FeatureLevelType;
+import dto.MessageContentType;
 import it.gov.pagopa.paymentupdater.dto.PaymentMessage;
-import it.gov.pagopa.paymentupdater.dto.avro.MessageContentType;
-import it.gov.pagopa.paymentupdater.dto.avro.MessageFeatureLevelType;
 import it.gov.pagopa.paymentupdater.dto.payments.Creditor;
 import it.gov.pagopa.paymentupdater.dto.payments.Debtor;
 import it.gov.pagopa.paymentupdater.dto.payments.DebtorPosition;
@@ -69,8 +69,7 @@ public abstract class AbstractMock {
 		returnReminder1 = new Payment();
 		returnReminder1.setId(id);
 		returnReminder1.setContent_type(MessageContentType.valueOf(contentType));
-		returnReminder1.setFiscal_code(fiscalCode);
-		returnReminder1.setContent_paymentData_dueDate(LocalDate.now());
+		returnReminder1.setFiscalCode(fiscalCode);
 		return returnReminder1;
 
 	}
@@ -192,16 +191,15 @@ public abstract class AbstractMock {
 		reminder.setCreatedAt(1l);
 		reminder.setPending(false);
 		reminder.setSenderServiceId("");
-		reminder.setTimestamp(1l);
 		reminder.setContent_paymentData_amount(0.0);
 		reminder.setTimeToLiveSeconds(5);
 		reminder.setContent_paymentData_noticeNumber("");
-		reminder.setFeatureLevelType(MessageFeatureLevelType.ADVANCED);
+		reminder.setFeature_level_type(FeatureLevelType.ADVANCED);
 		reminder.setSenderServiceId("");
 		reminder.setSenderUserId("");
 		getPaymentRetry();
 		Assertions.assertEquals(1l, reminder.getCreatedAt());
-		Assertions.assertEquals(MessageFeatureLevelType.ADVANCED, reminder.getFeatureLevelType());
+		Assertions.assertEquals(FeatureLevelType.ADVANCED, reminder.getFeature_level_type());
 		Assertions.assertEquals(true, reminder.isReadFlag());
 		Assertions.assertEquals(new ArrayList<>(), reminder.getDateReminder());
 		Assertions.assertEquals(LocalDateTime.of(2022, 01, 01, 1, 1), reminder.getLastDateReminder());

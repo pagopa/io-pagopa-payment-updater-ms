@@ -2,6 +2,10 @@ package it.gov.pagopa.paymentupdater.controller;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.TimeZone;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -45,9 +49,11 @@ public class PaymentController {
 	public ResponseEntity<ApiPaymentMessage> getMessagePayment(@PathVariable String messageId) {
 		return paymentService.findById(messageId)
 				.map(pay -> ApiPaymentMessage.builder().messageId(pay.getId())
-						.dueDate(pay.getContent_paymentData_dueDate()).paid(pay.isPaidFlag())
+						.dueDate(pay.getDueDate() == null ? null : LocalDate.ofInstant(Instant.ofEpochMilli(pay.getDueDate().longValue()), 
+				                TimeZone.getDefault().toZoneId()))
+						.paid(pay.isPaidFlag())
 						.amount(pay.getContent_paymentData_amount())
-						.fiscalCode(pay.getFiscal_code())
+						.fiscalCode(pay.getFiscalCode())
 						.noticeNumber(pay.getContent_paymentData_noticeNumber())
 						.build())
 				.map(paymentMessage -> new ResponseEntity<>(paymentMessage, HttpStatus.OK))

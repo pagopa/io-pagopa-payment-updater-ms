@@ -73,7 +73,7 @@ public class PaymentKafkaConsumer {
 				reminderToSend.setPaidDate(LocalDateTime.now());
 				paymentService.save(reminderToSend); 
 	
-				message.setFiscalCode(reminderToSend.getFiscal_code());
+				message.setFiscalCode(reminderToSend.getFiscalCode());
 				message.setMessageId(reminderToSend.getId());
 	
 				sendPaymentUpdateWithRetry(mapper.writeValueAsString(message));

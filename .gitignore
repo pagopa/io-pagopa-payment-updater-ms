@@ -10,3 +10,4 @@ target
 .factorypath
 *.log
 *bin/
+/src/main/resources/avro/*
