@@ -1,20 +1,13 @@
 {
   "name": "message",
   "type": "record",
-  "namespace": "it.gov.pagopa.reminder.dto",
+  "namespace": "dto",
   "doc": "Kafka JS schema for cosmos api container 'messages'",
   "fields": [
     {
-      "name": "op",
-      "type": {
-        "type": "enum",
-        "name": "MessageCrudOperation",
-        "symbols": [
-          "CREATE",
-          "UPDATE",
-          "DELETE"
-        ]
-      }
+      "name": "fiscalCode",
+      "type": "string",
+      "default": "undefined"
     },
     {
       "name": "id",
@@ -39,7 +32,7 @@
     {
       "name": "createdAt",
       "type": "long",
-      "logicalType": "timestamp-millis",
+      "logicalType": "time-millis",
       "default": 0
     },
     {
@@ -53,26 +46,36 @@
       "default": "undefined"
     },
     {
+      "name": "feature_level_type",
+      "type": ["null", {
+        "type": "enum",
+        "name": "FeatureLevelType",
+        "symbols": [
+          "STANDARD",
+          "ADVANCED"
+        ]
+      }],
+      "default": null
+    },
+    {
       "name": "content_type",
-      "type": [
-        "null",
-        {
-          "type": "enum",
-          "name": "MessageContentType",
-          "symbols": [
-            "GENERIC",
-            "PAYMENT",
-            "EU_COVID_CERT",
-            "LEGAL"
-          ]
-        }
-      ],
+      "type": ["null", {
+        "type": "enum",
+        "name": "MessageContentType",
+        "symbols": [
+          "GENERIC",
+          "PAYMENT",
+          "EU_COVID_CERT",
+          "LEGAL",
+          "PN"
+        ]
+      }],
       "default": null
     },
     {
       "name": "content_paymentData_amount",
-      "type": "double",
-      "default": 0.0
+      "type": "int",
+      "default": 0
     },
     {
       "name": "content_paymentData_noticeNumber",
@@ -90,32 +93,10 @@
       "default": "undefined"
     },
     {
-      "name": "content_paymentData_dueDate",
-      "type": "string",
-      "default": ""
-    },
-    {
-      "name": "fiscal_code",
-      "type": "string",
-      "default": "undefined"
-    },
-    {
-      "name": "timestamp",
+      "name": "dueDate",
       "type": "long",
-      "logicalType": "timestamp-millis",
+      "logicalType": "time-millis",
       "default": 0
-    },
-    {
-      "name": "featureLevelType",
-      "type": {
-        "type": "enum",
-        "name": "MessageFeatureLevelType",
-        "symbols": [
-          "STANDARD",
-          "ADVANCED"
-        ]
-      },
-      "default": "STANDARD"
     }
   ]
 }

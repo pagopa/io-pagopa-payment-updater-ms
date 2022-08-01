@@ -50,11 +50,7 @@ public class MockDeserializerIntegrationTest extends AbstractMock{
 	@Autowired 
 	@Qualifier("messageSchema") 
 	JsonLoader messageSchema;
-	
-	@Autowired 
-	@Qualifier("messageStatusSchema") 
-	JsonLoader messageStatusSchema;
-	
+
  
 	@SuppressWarnings("unchecked")
 	@Test
