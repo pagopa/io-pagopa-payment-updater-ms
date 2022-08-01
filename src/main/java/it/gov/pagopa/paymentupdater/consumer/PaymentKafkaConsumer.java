@@ -55,7 +55,7 @@ public class PaymentKafkaConsumer {
 
 	private CountDownLatch latch = new CountDownLatch(1);
 
-	@KafkaListener(topics = "${kafka.payment}", groupId = "consumer-Payment", containerFactory = "kafkaListenerContainerFactoryPaymentRoot")
+	@KafkaListener(topics = "${kafka.payment}", groupId = "consumer-Payment", containerFactory = "kafkaListenerContainerFactoryPaymentRoot", autoStartup = "${payment.auto.start}")
 	public void paymentKafkaListener(PaymentRoot root) throws JsonProcessingException {
 		log.debug("Received payment-root: {} ", root);
 		if (Objects.nonNull(root) && Objects.nonNull(root.getDebtorPosition()) && Objects.nonNull(root.getDebtorPosition().getNoticeNumber())){
