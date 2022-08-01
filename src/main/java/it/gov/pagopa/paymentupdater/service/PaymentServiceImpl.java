@@ -57,6 +57,8 @@ public class PaymentServiceImpl implements PaymentService {
 	@Autowired
 	@Qualifier("kafkaTemplatePayments")
 	private KafkaTemplate<String, String> kafkaTemplatePayments;
+	
+	private static String isPaid = "isPaid";
 
 	@Override
 	public Optional<Payment> getPaymentByNoticeNumberAndFiscalCode(String noticeNumber, String fiscalCode) {
@@ -73,7 +75,7 @@ public class PaymentServiceImpl implements PaymentService {
 	@Override
 	public Map<String, Boolean> checkPayment(String rptId) throws JsonProcessingException, InterruptedException, ExecutionException {
 		Map<String, Boolean> map = new HashMap<>();
-		map.put("isPaid", false);
+		map.put(isPaid, false);
 		try {
 			String url = urlProxy.concat("%s");
 			url = String.format(url, rptId);
@@ -100,7 +102,7 @@ public class PaymentServiceImpl implements PaymentService {
 					message.setPayeeFiscalCode(reminder.getContent_paymentData_payeeFiscalCode());
 					message.setSource("payments");
 					producer.sendReminder(mapper.writeValueAsString(message), kafkaTemplatePayments, topic);
-					map.put("isPaid", true);
+					map.put(isPaid, true);
 				}
 				return map;
 			} else {
