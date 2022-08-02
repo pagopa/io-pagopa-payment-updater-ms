@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.springframework.boot.json.JsonParseException;
 
@@ -16,18 +17,18 @@ import it.gov.pagopa.paymentupdater.util.PaymentUtil;
 import it.gov.pagopa.paymentupdater.util.TelemetryCustomEvent;
 import lombok.extern.slf4j.Slf4j;
 import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
+
 @Slf4j
 public class AvroMessageDeserializer implements Deserializer<Payment> {
 
 	JsonLoader schema;
 	ObjectMapper mapper;
 	JsonAvroConverter converter;
+	Payment emptyPayment = null;
 
 	public void setConverter(JsonAvroConverter converter) {
 		this.converter = converter;
 	}
-
-
 
 	public AvroMessageDeserializer(JsonLoader jsSchema, ObjectMapper objMapper) {
 		schema = jsSchema;
@@ -35,33 +36,42 @@ public class AvroMessageDeserializer implements Deserializer<Payment> {
 	}
 
 	@Override
-	public Payment deserialize(String topic, byte[] bytes) {	
+	public Payment deserialize(String topic, byte[] bytes) {
 		Payment returnObject = null;
 		if (bytes != null) {
 			try {
 				byte[] binaryJson = converter.convertToJson(bytes, schema.getJsonString());
 				String avroJson = new String(binaryJson);
 				returnObject = mapper.readValue(avroJson, Payment.class);
-				if (returnObject.getContent_type().equals((MessageContentType.PAYMENT)) && (StringUtils.isEmpty(returnObject.getContent_paymentData_noticeNumber()) || StringUtils.isEmpty(returnObject.getContent_paymentData_payeeFiscalCode()))) throw new JsonParseException();
-			} catch(Exception e) {
+			} catch (Exception e) {
 				log.error("Error in deserializing the Reminder for consumer message");
 				log.error(e.getMessage());
+			}
+			if ((returnObject == null || returnObject.getContent_type() == null ||  
+					((returnObject.getContent_type().equals((MessageContentType.PAYMENT))) 
+					&& (StringUtils.isEmpty(returnObject.getContent_paymentData_noticeNumber())
+					|| StringUtils.isEmpty(returnObject.getContent_paymentData_payeeFiscalCode())))
+					)) {
 				handleErrorMessage(bytes);
+				returnObject = null;
 			}
 
 		}
-
 		return returnObject;
 	}
-	
+
+
 	private void handleErrorMessage(byte[] bytes) {
 		try {
 			String message = new String(bytes, StandardCharsets.UTF_8);
 			log.error("The error Message: {}", message);
-			TelemetryCustomEvent.writeTelemetry("ErrorDeserializingMessage", new HashMap<>(), PaymentUtil.getErrorMap(message));
+			TelemetryCustomEvent.writeTelemetry("ErrorDeserializingMessage", new HashMap<>(),
+					PaymentUtil.getErrorMap(message));
+
 		} catch (Exception e1) {
 			log.error(e1.getMessage());
 		}
 	}
+
 
 }
