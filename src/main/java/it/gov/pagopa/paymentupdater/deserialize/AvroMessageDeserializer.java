@@ -34,11 +34,13 @@ public class AvroMessageDeserializer implements Deserializer<Payment> {
 
 	@Override
 	public Payment deserialize(String topic, byte[] bytes) {
+		log.info("start avro message deserialize");
 		Payment returnObject = null;
 		if (bytes != null) {
 			try {
 				byte[] binaryJson = converter.convertToJson(bytes, schema.getJsonString());
 				String avroJson = new String(binaryJson);
+				log.info("The avro json: {}", avroJson);
 				returnObject = mapper.readValue(avroJson, Payment.class);
 			} catch (Exception e) {
 				log.error("Error in deserializing the Reminder for consumer message");
