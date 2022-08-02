@@ -57,7 +57,7 @@ public class PaymentKafkaConsumer {
 
 	@KafkaListener(topics = "${kafka.payment}", groupId = "consumer-Payment", containerFactory = "kafkaListenerContainerFactoryPaymentRoot", autoStartup = "${payment.auto.start}")
 	public void paymentKafkaListener(PaymentRoot root) throws JsonProcessingException {
-		log.debug("Received payment-root: {} ", root);
+
 		if (Objects.nonNull(root) && Objects.nonNull(root.getDebtorPosition()) && Objects.nonNull(root.getDebtorPosition().getNoticeNumber())){
 			PaymentMessage message = new PaymentMessage();
 			message.setSource("payments");
@@ -78,7 +78,7 @@ public class PaymentKafkaConsumer {
 	
 				sendPaymentUpdateWithRetry(mapper.writeValueAsString(message));
 			} else {
-				log.info("Not found reminder in payment data with notice number: {}", message.getNoticeNumber());
+				log.info("Not found reminder in payment data");
 			}
 		}
 		this.latch.countDown();
@@ -91,7 +91,7 @@ public class PaymentKafkaConsumer {
 				.intervalFunction(intervalFn)
 				.build();
 		Retry retry = Retry.of("sendNotificationWithRetry", retryConfig);
-		Function<Object, Object> sendReminderFn = Retry.decorateFunction(retry, 
+		Function<Object, String> sendReminderFn = Retry.decorateFunction(retry, 
 				notObj -> {
 					try {				
 						return producer.sendReminder(message, kafkaTemplatePayments, producerTopic);

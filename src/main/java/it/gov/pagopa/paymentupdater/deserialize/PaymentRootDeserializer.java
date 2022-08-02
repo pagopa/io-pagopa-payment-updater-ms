@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Objects;
 
 import org.apache.kafka.common.serialization.Deserializer;
-import org.springframework.boot.json.JsonParseException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -28,11 +27,13 @@ public class PaymentRootDeserializer implements Deserializer<PaymentRoot> {
 		PaymentRoot paymentRoot = null;
 		try {
 			paymentRoot = mapper.readValue(bytes, PaymentRoot.class);
-			if (Objects.isNull(paymentRoot.getDebtorPosition()) || Objects.isNull(paymentRoot.getCreditor())) throw new JsonParseException();
 		} catch (Exception e) {
 			log.error("Error in deserializing the PaymentRoot for consumer payment-updates");
 			log.error(e.getMessage());
+		}	
+		if (Objects.isNull(paymentRoot) || Objects.isNull(paymentRoot.getDebtorPosition()) || Objects.isNull(paymentRoot.getCreditor())) {
 			handleErrorPaymentMessage(bytes);
+			paymentRoot = null;
 		}
 		return paymentRoot;
 	}

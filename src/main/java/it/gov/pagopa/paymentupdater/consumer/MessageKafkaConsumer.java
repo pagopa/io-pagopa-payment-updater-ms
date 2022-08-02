@@ -37,7 +37,7 @@ public class MessageKafkaConsumer {
 	public void messageKafkaListener(Payment reminder) throws JsonProcessingException, InterruptedException, ExecutionException {
 
 		if (reminder.getContent_type().equals(MessageContentType.PAYMENT)) {
-			log.debug("Received message: {} ", reminder);
+			log.debug("Received message with id: {} ", reminder.getId());
 			checkNullInMessage(reminder);
 			payload = reminder.toString();
 			var pp = paymentService.getPaymentByNoticeNumberAndFiscalCode(

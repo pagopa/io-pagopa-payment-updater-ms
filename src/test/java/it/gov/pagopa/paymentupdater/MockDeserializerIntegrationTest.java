@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import dto.MessageContentType;
 import it.gov.pagopa.paymentupdater.deserialize.AvroMessageDeserializer;
 import it.gov.pagopa.paymentupdater.deserialize.PaymentRootDeserializer;
 import it.gov.pagopa.paymentupdater.dto.payments.PaymentRoot;
@@ -58,8 +59,12 @@ public class MockDeserializerIntegrationTest extends AbstractMock{
 		byte[] byteArrray = "".getBytes();
 		avroMessageDeserializer = new AvroMessageDeserializer(messageSchema, mapper);
 		avroMessageDeserializer.setConverter(converter);
+		Payment paymentMessage = new Payment();
+		paymentMessage.setContent_type(MessageContentType.PAYMENT);
+		paymentMessage.setContent_paymentData_noticeNumber("test");
+		paymentMessage.setContent_paymentData_payeeFiscalCode("test");
 		Mockito.when(converter.convertToJson(Mockito.any(), Mockito.anyString())).thenReturn(byteArrray);
-		Mockito.when(mapper.readValue(Mockito.anyString(), Mockito.any(Class.class))).thenReturn(new Payment());
+		Mockito.when(mapper.readValue(Mockito.anyString(), Mockito.any(Class.class))).thenReturn(paymentMessage);
 		Payment payment = avroMessageDeserializer.deserialize(null, messageSchema.getJsonString().getBytes());
 		Assertions.assertNotNull(payment);
 	}
