@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Objects;
 
 import org.apache.kafka.common.serialization.Deserializer;
-import org.springframework.boot.json.JsonParseException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

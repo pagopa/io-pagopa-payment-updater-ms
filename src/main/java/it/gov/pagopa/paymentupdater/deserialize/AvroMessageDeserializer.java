@@ -4,9 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.Deserializer;
-import org.springframework.boot.json.JsonParseException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -24,7 +22,6 @@ public class AvroMessageDeserializer implements Deserializer<Payment> {
 	JsonLoader schema;
 	ObjectMapper mapper;
 	JsonAvroConverter converter;
-	Payment emptyPayment = null;
 
 	public void setConverter(JsonAvroConverter converter) {
 		this.converter = converter;
