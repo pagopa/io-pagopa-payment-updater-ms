@@ -10,9 +10,6 @@ import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -28,6 +25,8 @@ import it.gov.pagopa.paymentupdater.dto.request.ProxyPaymentResponse;
 import it.gov.pagopa.paymentupdater.model.Payment;
 import it.gov.pagopa.paymentupdater.producer.PaymentProducer;
 import it.gov.pagopa.paymentupdater.repository.PaymentRepository;
+import it.gov.pagopa.paymentupdater.restclient.proxy.ApiClient;
+import it.gov.pagopa.paymentupdater.restclient.proxy.api.DefaultApi;
 import it.gov.pagopa.paymentupdater.util.Constants;
 import lombok.extern.slf4j.Slf4j;
 
@@ -77,14 +76,17 @@ public class PaymentServiceImpl implements PaymentService {
 		Map<String, Boolean> map = new HashMap<>();
 		map.put(isPaid, false);
 		try {
-			String url = urlProxy.concat("%s");
-			url = String.format(url, rptId);
-
-			HttpHeaders headers = new HttpHeaders();
-			if (enableRestKey)
-				headers.set(Constants.OCP_APIM_SUB_KEY, proxyEndpointKey);
-			HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
-			restTemplate.exchange(url, HttpMethod.GET, requestEntity, ProxyPaymentResponse.class);
+			
+			ApiClient apiClient = new ApiClient();
+			if (enableRestKey) {
+				apiClient.setApiKey(proxyEndpointKey);
+			}
+			apiClient.setBasePath(urlProxy);
+			
+			DefaultApi defaultApi = new DefaultApi();
+			defaultApi.setApiClient(apiClient);		
+			defaultApi.getPaymentInfo(rptId, Constants.X_CLIENT_ID);			
+	
 			return map;
 		} catch (HttpServerErrorException errorException) {
 			// the reminder is already paid

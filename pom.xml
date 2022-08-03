@@ -406,7 +406,7 @@
 			                <goal>generate</goal>
 			            </goals>
 			            <configuration>
-			                <inputSpec>${basedir}/src/main/resources/swagger.yaml</inputSpec>
+			                <inputSpec>${basedir}/src/main/resources/api-pagopa-proxy.yaml</inputSpec>
 			                <language>java</language>
 			                <library>resttemplate</library>
 			                <output>${project.basedir}/target/generated-sources/</output>
