@@ -57,12 +57,13 @@ public class PaymentKafkaConsumer {
 
 	@KafkaListener(topics = "${kafka.payment}", groupId = "consumer-Payment", containerFactory = "kafkaListenerContainerFactoryPaymentRoot", autoStartup = "${payment.auto.start}")
 	public void paymentKafkaListener(PaymentRoot root) throws JsonProcessingException {
-
-		if (Objects.nonNull(root) && Objects.nonNull(root.getDebtorPosition()) && Objects.nonNull(root.getDebtorPosition().getNoticeNumber())){
+		log.info("start consumer-Payment");
+		if (Objects.nonNull(root) && Objects.nonNull(root.getDebtorPosition()) && Objects.nonNull(root.getDebtorPosition().getNoticeNumber()) 
+				&& Objects.nonNull(root.getCreditor()) && Objects.nonNull(root.getCreditor().getIdPA())) {
 			PaymentMessage message = new PaymentMessage();
 			message.setSource("payments");
 			message.setNoticeNumber(root.getDebtorPosition().getNoticeNumber());
-			message.setPayeeFiscalCode(root.getCreditor() != null ? root.getCreditor().getIdPA() : null);
+			message.setPayeeFiscalCode(root.getCreditor().getIdPA());
 			message.setPaid(true);
 	
 			var maybeReminderToSend = paymentService.getPaymentByNoticeNumberAndFiscalCode(message.getNoticeNumber(),

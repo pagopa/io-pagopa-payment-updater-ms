@@ -52,7 +52,7 @@ public class AvroMessageDeserializer implements Deserializer<Payment> {
 					|| StringUtils.isEmpty(returnObject.getContent_paymentData_payeeFiscalCode())))
 					)) {
 				handleErrorMessage(bytes);
-				returnObject = null;
+				returnObject = new Payment();
 			}
 
 		}
