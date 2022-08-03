@@ -343,11 +343,16 @@
 			            </goals>
 			            <configuration>
 			                <target>
-			                    <!-- download file -->
+			                    <!-- download file avro message-->
 			                    <get src="https://raw.githubusercontent.com/pagopa/io-functions-messages-cqrs/master/avro/message.json"
 			                         dest="${project.basedir}/src/main/resources/avro"
 			                         verbose="false"
 			                         usetimestamp="true"/>
+					    <!-- download swagger proxy pagopa-->
+			                    <get src="https://raw.githubusercontent.com/pagopa/io-pagopa-proxy/main/api-spec/api-pagopa-proxy.yaml"
+			                         dest="${project.basedir}/src/main/resources"
+			                         verbose="false"
+			                         usetimestamp="true"/>							
 			                 </target>
 			             </configuration>
 			         </execution>
