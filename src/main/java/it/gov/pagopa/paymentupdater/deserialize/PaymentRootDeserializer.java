@@ -33,7 +33,7 @@ public class PaymentRootDeserializer implements Deserializer<PaymentRoot> {
 		}	
 		if (Objects.isNull(paymentRoot) || Objects.isNull(paymentRoot.getDebtorPosition()) || Objects.isNull(paymentRoot.getCreditor())) {
 			handleErrorPaymentMessage(bytes);
-			paymentRoot = null;
+			paymentRoot = new PaymentRoot();
 		}
 		return paymentRoot;
 	}
