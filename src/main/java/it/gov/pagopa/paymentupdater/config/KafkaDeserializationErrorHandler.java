@@ -99,6 +99,7 @@ final class KafkaDeserializationErrorHandler extends DefaultErrorHandler {
         Map<TopicPartition, Long> partitions = new LinkedHashMap<>();
         AtomicBoolean first = new AtomicBoolean(true);
         records.forEach(record -> {
+            log.info("Seeking key=" + record.key());
             if (first.get()) {
                 partitions.put(new TopicPartition(record.topic(), record.partition()),
                         record.offset() + 1);

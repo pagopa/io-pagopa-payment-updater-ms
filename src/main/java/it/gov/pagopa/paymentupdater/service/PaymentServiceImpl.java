@@ -10,10 +10,12 @@ import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 //import org.springframework.http.HttpStatus;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpServerErrorException;
 //import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -75,6 +77,9 @@ public class PaymentServiceImpl implements PaymentService {
 	public Map<String, Boolean> checkPayment(String rptId)
 			throws JsonProcessingException, InterruptedException, ExecutionException {
 		Map<String, Boolean> map = new HashMap<>();
+		if (enableRestKey) {
+			throw new HttpServerErrorException(HttpStatus.UNAUTHORIZED);
+		}
 		map.put(isPaid, false);
 		return map;
 		// try {
