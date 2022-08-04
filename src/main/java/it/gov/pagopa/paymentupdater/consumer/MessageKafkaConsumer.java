@@ -12,8 +12,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-
 import dto.MessageContentType;
 import it.gov.pagopa.paymentupdater.model.Payment;
 import it.gov.pagopa.paymentupdater.service.PaymentService;
@@ -36,9 +34,10 @@ public class MessageKafkaConsumer {
 	private String payload = null;
 
 	@KafkaListener(topics = "${kafka.message}", groupId = "consumer-message", containerFactory = "kafkaListenerContainerFactory", autoStartup = "${message.auto.start}")
-	public void messageKafkaListener(Payment reminder) throws JsonProcessingException, InterruptedException, ExecutionException {
-		log.info("start consumer-message");
-		if (Objects.nonNull(reminder) && Objects.nonNull(reminder.getContent_type()) &&reminder.getContent_type().equals(MessageContentType.PAYMENT)) {
+	public void messageKafkaListener(Payment reminder)
+			throws JsonProcessingException, InterruptedException, ExecutionException {
+		if (Objects.nonNull(reminder) && Objects.nonNull(reminder.getContent_type())
+				&& reminder.getContent_type().equals(MessageContentType.PAYMENT)) {
 			log.debug("Received message with id: {} ", reminder.getId());
 			checkNullInMessage(reminder);
 			payload = reminder.toString();

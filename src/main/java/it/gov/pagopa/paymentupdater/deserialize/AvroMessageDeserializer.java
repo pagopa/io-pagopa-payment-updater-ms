@@ -17,13 +17,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AvroMessageDeserializer implements Deserializer<Payment> {
 
+	private final DatumReader<message> reader = new SpecificDatumReader<>(message.class);
+
 	@Override
 	public Payment deserialize(String topic, byte[] bytes) {
 		Payment returnObject = null;
 		if (bytes == null)
 			throw new AvroDeserializerException(
 					"Error in deserializing the Reminder for consumer message|bytes=null", bytes);
-		DatumReader<message> reader = new SpecificDatumReader<>(message.class);
 		try {
 			Decoder decoder = DecoderFactory.get().binaryDecoder(bytes, null);
 			message avroMessage = reader.read(null, decoder);
