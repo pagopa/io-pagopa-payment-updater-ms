@@ -2,6 +2,7 @@ package it.gov.pagopa.paymentupdater.consumer;
 
 import static it.gov.pagopa.paymentupdater.util.PaymentUtil.checkNullInMessage;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
@@ -36,7 +37,7 @@ public class MessageKafkaConsumer {
 	@KafkaListener(topics = "${kafka.message}", groupId = "consumer-message", containerFactory = "kafkaListenerContainerFactory", autoStartup = "${message.auto.start}")
 	public void messageKafkaListener(Payment reminder)
 			throws JsonProcessingException, InterruptedException, ExecutionException {
-		log.info("Processing messageId=" + reminder.getId());
+		log.info("Processing messageId=" + reminder.getId(), " time=" + new Date().toString());
 		if (Objects.nonNull(reminder) && Objects.nonNull(reminder.getContent_type())
 				&& reminder.getContent_type().equals(MessageContentType.PAYMENT)) {
 			log.debug("Received message with id: {} ", reminder.getId());
