@@ -26,6 +26,7 @@ import it.gov.pagopa.paymentupdater.deserialize.PaymentRootDeserializer;
 import it.gov.pagopa.paymentupdater.dto.payments.PaymentRoot;
 import it.gov.pagopa.paymentupdater.exception.AvroDeserializerException;
 import it.gov.pagopa.paymentupdater.exception.SkipDataException;
+import it.gov.pagopa.paymentupdater.exception.UnexpectedDataException;
 import it.gov.pagopa.paymentupdater.model.Payment;
 
 @EnableKafka
@@ -62,6 +63,7 @@ public class ConfigConsumer extends ConfigKafka {
 		commonDelegatingErrorHandler.addDelegate(DeserializationException.class, deserializationErrorHandler);
 		commonDelegatingErrorHandler.addDelegate(AvroDeserializerException.class, deserializationErrorHandler);
 		commonDelegatingErrorHandler.addDelegate(SkipDataException.class, deserializationErrorHandler);
+		commonDelegatingErrorHandler.addDelegate(UnexpectedDataException.class, deserializationErrorHandler);
 		return commonDelegatingErrorHandler;
 	}
 

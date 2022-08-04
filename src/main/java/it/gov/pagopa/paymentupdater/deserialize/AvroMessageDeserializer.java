@@ -10,6 +10,7 @@ import dto.MessageContentType;
 import dto.message;
 import it.gov.pagopa.paymentupdater.exception.AvroDeserializerException;
 import it.gov.pagopa.paymentupdater.exception.SkipDataException;
+import it.gov.pagopa.paymentupdater.exception.UnexpectedDataException;
 import it.gov.pagopa.paymentupdater.model.Payment;
 import it.gov.pagopa.paymentupdater.util.MessagePaymentMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -34,13 +35,15 @@ public class AvroMessageDeserializer implements Deserializer<Payment> {
 			throw new AvroDeserializerException(
 					"Error in deserializing the Reminder for consumer message|ERROR=" + e.getMessage(), bytes);
 		}
-		if ((returnObject == null || returnObject.getContent_type() == null ||
-				((returnObject.getContent_type().equals((MessageContentType.PAYMENT)))
-						&& (StringUtils.isEmpty(returnObject.getContent_paymentData_noticeNumber())
-								|| StringUtils.isEmpty(returnObject.getContent_paymentData_payeeFiscalCode()))))) {
+		if (returnObject == null || returnObject.getContent_type() == null
+				|| !returnObject.getContent_type().equals(MessageContentType.PAYMENT)) {
 			throw new SkipDataException("Skip Data that not satisfies constraints", returnObject);
-
 		}
+
+		if (returnObject.getContent_type().equals(MessageContentType.PAYMENT)
+				&& (StringUtils.isEmpty(returnObject.getContent_paymentData_noticeNumber())
+						|| StringUtils.isEmpty(returnObject.getContent_paymentData_payeeFiscalCode())))
+			throw new UnexpectedDataException("Unexpected Data", returnObject);
 		return returnObject;
 	}
 

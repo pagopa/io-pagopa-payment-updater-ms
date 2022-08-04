@@ -16,6 +16,7 @@ import org.springframework.kafka.support.serializer.DeserializationException;
 
 import it.gov.pagopa.paymentupdater.exception.AvroDeserializerException;
 import it.gov.pagopa.paymentupdater.exception.SkipDataException;
+import it.gov.pagopa.paymentupdater.exception.UnexpectedDataException;
 import it.gov.pagopa.paymentupdater.util.PaymentUtil;
 import it.gov.pagopa.paymentupdater.util.TelemetryCustomEvent;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +38,7 @@ final class KafkaDeserializationErrorHandler extends DefaultErrorHandler {
             if (thrownException.getClass().equals(DeserializationException.class)) {
                 DeserializationException exception = (DeserializationException) thrownException;
                 message = new String(exception.getData());
-                log.info("Skipping message with topic {} and offset {} " +
+                log.info("DeserializationException|Skipping message with topic {} and offset {} " +
                         "- malformed message: {} , exception: {}", topic, offset, message,
                         exception.getLocalizedMessage());
                 handleErrorMessage(exception.getData());
@@ -46,16 +47,24 @@ final class KafkaDeserializationErrorHandler extends DefaultErrorHandler {
             if (thrownException.getClass().equals(AvroDeserializerException.class)) {
                 AvroDeserializerException exception = (AvroDeserializerException) thrownException;
                 message = new String(exception.getData());
-                log.info("Skipping message with topic {} and offset {} " +
+                log.info("AvroDeserializerException|Skipping message with topic {} and offset {} " +
                         "- malformed message: {} , exception: {}", topic, offset, message,
                         exception.getLocalizedMessage());
                 handleErrorMessage(exception.getData());
                 return;
             }
+            if (thrownException.getClass().equals(UnexpectedDataException.class)) {
+                UnexpectedDataException exception = (UnexpectedDataException) thrownException;
+                log.info("UnexpectedDataException|Skipping message with topic {} and offset {} " +
+                        "- unexpected message: {} , exception: {}", topic, offset, exception.getSkippedData(),
+                        thrownException.getMessage());
+                handleErrorMessage(exception.getSkippedData().toString().getBytes());
+                return;
+            }
             if (thrownException.getClass().equals(SkipDataException.class)) {
-                log.info("Skipping message with topic {} and offset {} " +
+                log.info("SkipDataException|Skipping message with topic {} and offset {} " +
                         "- exception: {}", topic, offset,
-                        thrownException.getLocalizedMessage());
+                        thrownException.getMessage());
                 return;
             }
 
@@ -90,6 +99,14 @@ final class KafkaDeserializationErrorHandler extends DefaultErrorHandler {
                     "- malformed message: {} , exception: {}", topic, offset, message,
                     exception.getLocalizedMessage());
             handleErrorMessage(exception.getData());
+        }
+        if (thrownException.getClass().equals(UnexpectedDataException.class)) {
+            UnexpectedDataException exception = (UnexpectedDataException) thrownException;
+            log.info("UnexpectedDataException|Skipping message with topic {} and offset {} " +
+                    "- unexpected message: {} , exception: {}", topic, offset, exception.getSkippedData(),
+                    thrownException.getMessage());
+            handleErrorMessage(exception.getSkippedData().toString().getBytes());
+            return;
         }
         if (thrownException.getClass().equals(SkipDataException.class)) {
             log.info("SkipDataException|Skipping message with topic {} and offset {} " +
