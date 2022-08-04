@@ -17,6 +17,7 @@ import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.DeserializationException;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
+import org.springframework.util.backoff.FixedBackOff;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.gov.pagopa.paymentupdater.consumer.MessageKafkaConsumer;
@@ -57,9 +58,7 @@ public class ConfigConsumer extends ConfigKafka {
 
 	@Bean
 	public DefaultErrorHandler defaultErrorHandler() {
-		DefaultErrorHandler defaultErrorHandler = new DefaultErrorHandler();
-		defaultErrorHandler.setAckAfterHandle(false);
-		return defaultErrorHandler;
+		return new DefaultErrorHandler(new FixedBackOff(2000, Long.MAX_VALUE));
 	}
 
 	@Bean
