@@ -35,6 +35,7 @@ final class KafkaDeserializationErrorHandler extends DefaultErrorHandler {
             long offset = record.offset();
             int partition = record.partition();
             String message = "";
+            log.info("thrownException class is " + thrownException.getClass());
             if (thrownException.getClass().equals(DeserializationException.class)) {
                 DeserializationException exception = (DeserializationException) thrownException;
                 message = new String(exception.getData());
