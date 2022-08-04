@@ -69,8 +69,9 @@ final class KafkaDeserializationErrorHandler extends DefaultErrorHandler {
                 return;
             }
 
-            log.info("Skipping message with topic {} - offset {} - partition {} - exception {}", topic, offset,
-                    partition, thrownException);
+            log.info("Skipping message with topic {} - offset {} - partition {} - record value {} exception {}", topic,
+                    offset,
+                    partition, record.value(), thrownException);
 
         } else {
             log.info("Consumer exception - cause: {}", thrownException.getMessage());
