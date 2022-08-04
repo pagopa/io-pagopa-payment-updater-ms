@@ -28,7 +28,6 @@ final class KafkaDeserializationErrorHandler extends DefaultErrorHandler {
     @Override
     public void handleRemaining(Exception thrownException, List<ConsumerRecord<?, ?>> records,
             Consumer<?, ?> consumer, MessageListenerContainer container) {
-        log.info("handleRemaining started");
         Throwable toCheck = thrownException;
         if (thrownException instanceof ListenerExecutionFailedException) {
             toCheck = thrownException.getCause();
@@ -40,11 +39,10 @@ final class KafkaDeserializationErrorHandler extends DefaultErrorHandler {
             long offset = record.offset();
             int partition = record.partition();
             String message = "";
-            log.info("toCheck class is " + toCheck.getClass());
             if (toCheck.getClass().equals(DeserializationException.class)) {
                 DeserializationException exception = (DeserializationException) toCheck;
                 message = new String(exception.getData());
-                log.info("DeserializationException|Skipping message with topic {} and offset {} " +
+                log.debug("DeserializationException|Skipping message with topic {} and offset {} " +
                         "- malformed message: {} , exception: {}", topic, offset, message,
                         exception.getLocalizedMessage());
                 handleErrorMessage(exception.getData());
@@ -53,7 +51,7 @@ final class KafkaDeserializationErrorHandler extends DefaultErrorHandler {
             if (toCheck.getClass().equals(AvroDeserializerException.class)) {
                 AvroDeserializerException exception = (AvroDeserializerException) toCheck;
                 message = new String(exception.getData());
-                log.info("AvroDeserializerException|Skipping message with topic {} and offset {} " +
+                log.debug("AvroDeserializerException|Skipping message with topic {} and offset {} " +
                         "- malformed message: {} , exception: {}", topic, offset, message,
                         exception.getLocalizedMessage());
                 handleErrorMessage(exception.getData());
@@ -61,25 +59,25 @@ final class KafkaDeserializationErrorHandler extends DefaultErrorHandler {
             }
             if (toCheck.getClass().equals(UnexpectedDataException.class)) {
                 UnexpectedDataException exception = (UnexpectedDataException) toCheck;
-                log.info("UnexpectedDataException|Skipping message with topic {} and offset {} " +
+                log.debug("UnexpectedDataException|Skipping message with topic {} and offset {} " +
                         "- unexpected message: {} , exception: {}", topic, offset, exception.getSkippedData(),
                         thrownException.getMessage());
                 handleErrorMessage(exception.getSkippedData().toString().getBytes());
                 return;
             }
             if (toCheck.getClass().equals(SkipDataException.class)) {
-                log.info("SkipDataException|Skipping message with topic {} and offset {} " +
+                log.debug("SkipDataException|Skipping message with topic {} and offset {} " +
                         "- exception: {}", topic, offset,
                         toCheck.getMessage());
                 return;
             }
 
-            log.info("Skipping message with topic {} - offset {} - partition {} - record value {} exception {}", topic,
+            log.debug("Skipping message with topic {} - offset {} - partition {} - record value {} exception {}", topic,
                     offset,
                     partition, record.value(), toCheck);
 
         } else {
-            log.info("Consumer exception - cause: {}", thrownException.getMessage());
+            log.debug("Consumer exception - cause: {}", thrownException.getMessage());
         }
 
     }
@@ -99,7 +97,7 @@ final class KafkaDeserializationErrorHandler extends DefaultErrorHandler {
         Map<TopicPartition, Long> partitions = new LinkedHashMap<>();
         AtomicBoolean first = new AtomicBoolean(true);
         records.forEach(record -> {
-            log.info("Seeking key=" + record.key());
+            log.debug("Seeking key=" + record.key());
             if (first.get()) {
                 partitions.put(new TopicPartition(record.topic(), record.partition()),
                         record.offset() + 1);

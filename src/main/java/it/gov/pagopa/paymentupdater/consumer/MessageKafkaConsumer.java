@@ -37,7 +37,7 @@ public class MessageKafkaConsumer {
 	@KafkaListener(topics = "${kafka.message}", groupId = "consumer-message", containerFactory = "kafkaListenerContainerFactory", autoStartup = "${message.auto.start}")
 	public void messageKafkaListener(Payment paymentMessage)
 			throws JsonProcessingException, InterruptedException, ExecutionException {
-		log.info("Processing messageId=" + paymentMessage.getId() + " time=" + new Date().toString()
+		log.debug("Processing messageId=" + paymentMessage.getId() + " time=" + new Date().toString()
 				+ "paymentMessageContentType="
 				+ paymentMessage.getContent_type());
 		if (Objects.nonNull(paymentMessage) && Objects.nonNull(paymentMessage.getContent_type())
