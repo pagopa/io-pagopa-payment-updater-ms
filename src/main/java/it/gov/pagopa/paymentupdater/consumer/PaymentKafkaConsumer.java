@@ -65,16 +65,16 @@ public class PaymentKafkaConsumer {
 			message.setPayeeFiscalCode(root.getCreditor().getIdPA());
 			message.setPaid(true);
 
-			var maybeReminderToSend = paymentService.getPaymentByNoticeNumberAndFiscalCode(message.getNoticeNumber(),
+			var maybePaymentToSend = paymentService.getPaymentByNoticeNumberAndFiscalCode(message.getNoticeNumber(),
 					message.getPayeeFiscalCode());
-			if (maybeReminderToSend.isPresent()) {
-				var reminderToSend = maybeReminderToSend.get();
-				reminderToSend.setPaidFlag(true);
-				reminderToSend.setPaidDate(LocalDateTime.now());
-				paymentService.save(reminderToSend);
+			if (maybePaymentToSend.isPresent()) {
+				var paymentToSend = maybePaymentToSend.get();
+				paymentToSend.setPaidFlag(true);
+				paymentToSend.setPaidDate(LocalDateTime.now());
+				paymentService.save(paymentToSend);
 
-				message.setFiscalCode(reminderToSend.getFiscalCode());
-				message.setMessageId(reminderToSend.getId());
+				message.setFiscalCode(paymentToSend.getFiscalCode());
+				message.setMessageId(paymentToSend.getId());
 
 				sendPaymentUpdateWithRetry(mapper.writeValueAsString(message));
 			} else {
