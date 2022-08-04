@@ -91,7 +91,7 @@ public class PaymentKafkaConsumer {
 				.intervalFunction(intervalFn)
 				.build();
 		Retry retry = Retry.of("sendNotificationWithRetry", retryConfig);
-		Function<Object, String> sendReminderFn = Retry.decorateFunction(retry,
+		Function<Object, String> sendPaymentUpdateFn = Retry.decorateFunction(retry,
 				notObj -> {
 					try {
 						return producer.sendPaymentUpdate(message, kafkaTemplatePayments, producerTopic);
@@ -114,7 +114,7 @@ public class PaymentKafkaConsumer {
 				}
 			}
 		});
-		sendReminderFn.apply(message);
+		sendPaymentUpdateFn.apply(message);
 	}
 
 	private PaymentRetry messageToRetry(String message) {
