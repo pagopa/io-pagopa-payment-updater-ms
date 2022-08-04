@@ -35,8 +35,7 @@ public class AvroMessageDeserializer implements Deserializer<Payment> {
 			throw new AvroDeserializerException(
 					"Error in deserializing the Reminder for consumer message|ERROR=" + e.getMessage(), bytes);
 		}
-		if (returnObject == null || returnObject.getContent_type() == null
-				|| !returnObject.getContent_type().equals(MessageContentType.PAYMENT)) {
+		if (returnObject == null || returnObject.getContent_type() == null) {
 			throw new SkipDataException("Skip Data that not satisfies constraints", returnObject);
 		}
 
