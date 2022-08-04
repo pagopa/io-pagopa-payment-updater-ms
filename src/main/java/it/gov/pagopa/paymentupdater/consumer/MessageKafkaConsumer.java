@@ -36,6 +36,7 @@ public class MessageKafkaConsumer {
 	@KafkaListener(topics = "${kafka.message}", groupId = "consumer-message", containerFactory = "kafkaListenerContainerFactory", autoStartup = "${message.auto.start}")
 	public void messageKafkaListener(Payment reminder)
 			throws JsonProcessingException, InterruptedException, ExecutionException {
+		log.info("Processing messageId=" + reminder.getId());
 		if (Objects.nonNull(reminder) && Objects.nonNull(reminder.getContent_type())
 				&& reminder.getContent_type().equals(MessageContentType.PAYMENT)) {
 			log.debug("Received message with id: {} ", reminder.getId());

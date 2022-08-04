@@ -1,24 +1,33 @@
 package it.gov.pagopa.paymentupdater.service;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import it.gov.pagopa.paymentupdater.dto.PaymentMessage;
+import it.gov.pagopa.paymentupdater.dto.request.ProxyPaymentResponse;
 import it.gov.pagopa.paymentupdater.model.Payment;
 import it.gov.pagopa.paymentupdater.producer.PaymentProducer;
 import it.gov.pagopa.paymentupdater.repository.PaymentRepository;
+import it.gov.pagopa.paymentupdater.restclient.proxy.ApiClient;
+import it.gov.pagopa.paymentupdater.restclient.proxy.api.DefaultApi;
+import it.gov.pagopa.paymentupdater.util.Constants;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -67,45 +76,44 @@ public class PaymentServiceImpl implements PaymentService {
 			throws JsonProcessingException, InterruptedException, ExecutionException {
 		Map<String, Boolean> map = new HashMap<>();
 		map.put(isPaid, false);
-		return map;
-		// try {
 
-		// ApiClient apiClient = new ApiClient();
-		// if (enableRestKey) {
-		// apiClient.setApiKey(proxyEndpointKey);
-		// }
-		// apiClient.setBasePath(urlProxy);
+		try {
 
-		// DefaultApi defaultApi = new DefaultApi();
-		// defaultApi.setApiClient(apiClient);
-		// defaultApi.getPaymentInfo(rptId, Constants.X_CLIENT_ID);
+			ApiClient apiClient = new ApiClient();
+			if (enableRestKey) {
+				apiClient.setApiKey(proxyEndpointKey);
+			}
+			apiClient.setBasePath(urlProxy);
 
-		// return map;
-		// } catch (HttpServerErrorException errorException) {
-		// // the reminder is already paid
-		// ProxyPaymentResponse res =
-		// mapper.readValue(errorException.getResponseBodyAsString(),
-		// ProxyPaymentResponse.class);
-		// if (res.getDetail_v2().equals("PPT_RPT_DUPLICATA")
-		// && errorException.getStatusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
-		// Payment reminder = paymentRepository.getPaymentByRptId(rptId);
-		// if (Objects.nonNull(reminder)) {
-		// reminder.setPaidFlag(true);
-		// reminder.setPaidDate(LocalDateTime.now());
-		// paymentRepository.save(reminder);
-		// PaymentMessage message = new PaymentMessage();
-		// message.setNoticeNumber(reminder.getContent_paymentData_noticeNumber());
-		// message.setPayeeFiscalCode(reminder.getContent_paymentData_payeeFiscalCode());
-		// message.setSource("payments");
-		// producer.sendPaymentUpdate(mapper.writeValueAsString(message),
-		// kafkaTemplatePayments, topic);
-		// map.put(isPaid, true);
-		// }
-		// return map;
-		// } else {
-		// throw errorException;
-		// }
-		// }
+			DefaultApi defaultApi = new DefaultApi();
+			defaultApi.setApiClient(apiClient);
+			defaultApi.getPaymentInfo(rptId, Constants.X_CLIENT_ID);
+
+			return map;
+		} catch (HttpServerErrorException errorException) {
+			// the reminder is already paid
+			ProxyPaymentResponse res = mapper.readValue(errorException.getResponseBodyAsString(),
+					ProxyPaymentResponse.class);
+			if (res.getDetail_v2().equals("PPT_RPT_DUPLICATA")
+					&& errorException.getStatusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
+				Payment reminder = paymentRepository.getPaymentByRptId(rptId);
+				if (Objects.nonNull(reminder)) {
+					reminder.setPaidFlag(true);
+					reminder.setPaidDate(LocalDateTime.now());
+					paymentRepository.save(reminder);
+					PaymentMessage message = new PaymentMessage();
+					message.setNoticeNumber(reminder.getContent_paymentData_noticeNumber());
+					message.setPayeeFiscalCode(reminder.getContent_paymentData_payeeFiscalCode());
+					message.setSource("payments");
+					producer.sendPaymentUpdate(mapper.writeValueAsString(message),
+							kafkaTemplatePayments, topic);
+					map.put(isPaid, true);
+				}
+				return map;
+			} else {
+				throw errorException;
+			}
+		}
 	}
 
 	@Override

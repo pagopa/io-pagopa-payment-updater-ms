@@ -12,7 +12,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.listener.ContainerAwareErrorHandler;
+import org.springframework.kafka.listener.CommonDelegatingErrorHandler;
+import org.springframework.kafka.listener.CommonErrorHandler;
+import org.springframework.kafka.listener.CommonLoggingErrorHandler;
+import org.springframework.kafka.support.serializer.DeserializationException;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,6 +24,8 @@ import it.gov.pagopa.paymentupdater.consumer.PaymentKafkaConsumer;
 import it.gov.pagopa.paymentupdater.deserialize.AvroMessageDeserializer;
 import it.gov.pagopa.paymentupdater.deserialize.PaymentRootDeserializer;
 import it.gov.pagopa.paymentupdater.dto.payments.PaymentRoot;
+import it.gov.pagopa.paymentupdater.exception.AvroDeserializerException;
+import it.gov.pagopa.paymentupdater.exception.SkipDataException;
 import it.gov.pagopa.paymentupdater.model.Payment;
 
 @EnableKafka
@@ -50,8 +55,14 @@ public class ConfigConsumer extends ConfigKafka {
 	}
 
 	@Bean
-	public ContainerAwareErrorHandler kafkaErrorHandler() {
-		return new KafkaErrorHandler();
+	public CommonErrorHandler commonErrorHandler() {
+		CommonDelegatingErrorHandler commonDelegatingErrorHandler = new CommonDelegatingErrorHandler(
+				new CommonLoggingErrorHandler());
+		KafkaDeserializationErrorHandler deserializationErrorHandler = new KafkaDeserializationErrorHandler();
+		commonDelegatingErrorHandler.addDelegate(DeserializationException.class, deserializationErrorHandler);
+		commonDelegatingErrorHandler.addDelegate(AvroDeserializerException.class, deserializationErrorHandler);
+		commonDelegatingErrorHandler.addDelegate(SkipDataException.class, deserializationErrorHandler);
+		return commonDelegatingErrorHandler;
 	}
 
 	@Bean
@@ -64,6 +75,7 @@ public class ConfigConsumer extends ConfigKafka {
 		props.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
 		DefaultKafkaConsumerFactory<String, Payment> dkc = new DefaultKafkaConsumerFactory<>(props);
 		factory.setConsumerFactory(dkc);
+		factory.setCommonErrorHandler(commonErrorHandler());
 		return factory;
 	}
 
