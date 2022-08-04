@@ -42,7 +42,7 @@ final class KafkaDeserializationErrorHandler extends DefaultErrorHandler {
             String message = "";
             log.info("toCheck class is " + toCheck.getClass());
             if (toCheck.getClass().equals(DeserializationException.class)) {
-                DeserializationException exception = (DeserializationException) thrownException;
+                DeserializationException exception = (DeserializationException) toCheck;
                 message = new String(exception.getData());
                 log.info("DeserializationException|Skipping message with topic {} and offset {} " +
                         "- malformed message: {} , exception: {}", topic, offset, message,
@@ -51,7 +51,7 @@ final class KafkaDeserializationErrorHandler extends DefaultErrorHandler {
                 return;
             }
             if (toCheck.getClass().equals(AvroDeserializerException.class)) {
-                AvroDeserializerException exception = (AvroDeserializerException) thrownException;
+                AvroDeserializerException exception = (AvroDeserializerException) toCheck;
                 message = new String(exception.getData());
                 log.info("AvroDeserializerException|Skipping message with topic {} and offset {} " +
                         "- malformed message: {} , exception: {}", topic, offset, message,
@@ -60,7 +60,7 @@ final class KafkaDeserializationErrorHandler extends DefaultErrorHandler {
                 return;
             }
             if (toCheck.getClass().equals(UnexpectedDataException.class)) {
-                UnexpectedDataException exception = (UnexpectedDataException) thrownException;
+                UnexpectedDataException exception = (UnexpectedDataException) toCheck;
                 log.info("UnexpectedDataException|Skipping message with topic {} and offset {} " +
                         "- unexpected message: {} , exception: {}", topic, offset, exception.getSkippedData(),
                         thrownException.getMessage());
@@ -70,55 +70,16 @@ final class KafkaDeserializationErrorHandler extends DefaultErrorHandler {
             if (toCheck.getClass().equals(SkipDataException.class)) {
                 log.info("SkipDataException|Skipping message with topic {} and offset {} " +
                         "- exception: {}", topic, offset,
-                        thrownException.getMessage());
+                        toCheck.getMessage());
                 return;
             }
 
             log.info("Skipping message with topic {} - offset {} - partition {} - record value {} exception {}", topic,
                     offset,
-                    partition, record.value(), thrownException);
+                    partition, record.value(), toCheck);
 
         } else {
             log.info("Consumer exception - cause: {}", thrownException.getMessage());
-        }
-
-    }
-
-    @Override
-    public void handleRecord(Exception thrownException, ConsumerRecord<?, ?> record, Consumer<?, ?> consumer,
-            MessageListenerContainer container) {
-        String topic = record.topic();
-        long offset = record.offset();
-        int partition = record.partition();
-        String message = "";
-        if (thrownException.getClass().equals(DeserializationException.class)) {
-            DeserializationException exception = (DeserializationException) thrownException;
-            message = new String(exception.getData());
-            log.info("DeserializationException|Skipping message with topic {}, offset {} and partion {} " +
-                    "- malformed message: {} , exception: {}", topic, offset, partition, message,
-                    exception.getLocalizedMessage());
-            handleErrorMessage(exception.getData());
-        }
-        if (thrownException.getClass().equals(AvroDeserializerException.class)) {
-            AvroDeserializerException exception = (AvroDeserializerException) thrownException;
-            message = new String(exception.getData());
-            log.info("AvroDeserializerException|Skipping message with topic {} and offset {} " +
-                    "- malformed message: {} , exception: {}", topic, offset, message,
-                    exception.getLocalizedMessage());
-            handleErrorMessage(exception.getData());
-        }
-        if (thrownException.getClass().equals(UnexpectedDataException.class)) {
-            UnexpectedDataException exception = (UnexpectedDataException) thrownException;
-            log.info("UnexpectedDataException|Skipping message with topic {} and offset {} " +
-                    "- unexpected message: {} , exception: {}", topic, offset, exception.getSkippedData(),
-                    thrownException.getMessage());
-            handleErrorMessage(exception.getSkippedData().toString().getBytes());
-            return;
-        }
-        if (thrownException.getClass().equals(SkipDataException.class)) {
-            log.info("SkipDataException|Skipping message with topic {} and offset {} " +
-                    "- exception: {}", topic, offset,
-                    thrownException.getLocalizedMessage());
         }
 
     }
