@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.ContainerAwareErrorHandler;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,6 +47,11 @@ public class ConfigConsumer extends ConfigKafka {
 	@Bean
 	public PaymentKafkaConsumer paymentEventKafkaConsumer() {
 		return new PaymentKafkaConsumer();
+	}
+
+	@Bean
+	public ContainerAwareErrorHandler kafkaErrorHandler() {
+		return new KafkaErrorHandler();
 	}
 
 	@Bean
