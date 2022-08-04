@@ -14,7 +14,7 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.CommonDelegatingErrorHandler;
 import org.springframework.kafka.listener.CommonErrorHandler;
-import org.springframework.kafka.listener.CommonLoggingErrorHandler;
+import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.DeserializationException;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 
@@ -57,7 +57,7 @@ public class ConfigConsumer extends ConfigKafka {
 	@Bean
 	public CommonErrorHandler commonErrorHandler() {
 		CommonDelegatingErrorHandler commonDelegatingErrorHandler = new CommonDelegatingErrorHandler(
-				new CommonLoggingErrorHandler());
+				new DefaultErrorHandler());
 		KafkaDeserializationErrorHandler deserializationErrorHandler = new KafkaDeserializationErrorHandler();
 		commonDelegatingErrorHandler.addDelegate(DeserializationException.class, deserializationErrorHandler);
 		commonDelegatingErrorHandler.addDelegate(AvroDeserializerException.class, deserializationErrorHandler);
