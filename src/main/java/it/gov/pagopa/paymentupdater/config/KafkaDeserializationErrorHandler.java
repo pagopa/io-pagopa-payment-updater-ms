@@ -11,6 +11,7 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.listener.ListenerExecutionFailedException;
 import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.support.serializer.DeserializationException;
 
@@ -28,6 +29,10 @@ final class KafkaDeserializationErrorHandler extends DefaultErrorHandler {
     public void handleRemaining(Exception thrownException, List<ConsumerRecord<?, ?>> records,
             Consumer<?, ?> consumer, MessageListenerContainer container) {
         log.info("handleRemaining started");
+        Throwable toCheck = thrownException;
+        if (thrownException instanceof ListenerExecutionFailedException) {
+            toCheck = thrownException.getCause();
+        }
         doSeeks(records, consumer);
         if (!records.isEmpty()) {
             ConsumerRecord<?, ?> record = records.get(0);
@@ -35,8 +40,8 @@ final class KafkaDeserializationErrorHandler extends DefaultErrorHandler {
             long offset = record.offset();
             int partition = record.partition();
             String message = "";
-            log.info("thrownException class is " + thrownException.getClass());
-            if (thrownException.getClass().equals(DeserializationException.class)) {
+            log.info("toCheck class is " + toCheck.getClass());
+            if (toCheck.getClass().equals(DeserializationException.class)) {
                 DeserializationException exception = (DeserializationException) thrownException;
                 message = new String(exception.getData());
                 log.info("DeserializationException|Skipping message with topic {} and offset {} " +
@@ -45,7 +50,7 @@ final class KafkaDeserializationErrorHandler extends DefaultErrorHandler {
                 handleErrorMessage(exception.getData());
                 return;
             }
-            if (thrownException.getClass().equals(AvroDeserializerException.class)) {
+            if (toCheck.getClass().equals(AvroDeserializerException.class)) {
                 AvroDeserializerException exception = (AvroDeserializerException) thrownException;
                 message = new String(exception.getData());
                 log.info("AvroDeserializerException|Skipping message with topic {} and offset {} " +
@@ -54,7 +59,7 @@ final class KafkaDeserializationErrorHandler extends DefaultErrorHandler {
                 handleErrorMessage(exception.getData());
                 return;
             }
-            if (thrownException.getClass().equals(UnexpectedDataException.class)) {
+            if (toCheck.getClass().equals(UnexpectedDataException.class)) {
                 UnexpectedDataException exception = (UnexpectedDataException) thrownException;
                 log.info("UnexpectedDataException|Skipping message with topic {} and offset {} " +
                         "- unexpected message: {} , exception: {}", topic, offset, exception.getSkippedData(),
@@ -62,7 +67,7 @@ final class KafkaDeserializationErrorHandler extends DefaultErrorHandler {
                 handleErrorMessage(exception.getSkippedData().toString().getBytes());
                 return;
             }
-            if (thrownException.getClass().equals(SkipDataException.class)) {
+            if (toCheck.getClass().equals(SkipDataException.class)) {
                 log.info("SkipDataException|Skipping message with topic {} and offset {} " +
                         "- exception: {}", topic, offset,
                         thrownException.getMessage());
