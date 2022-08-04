@@ -58,12 +58,11 @@ public class ConfigConsumer extends ConfigKafka {
 	public ConcurrentKafkaListenerContainerFactory<String, Payment> kafkaListenerContainerFactory() {
 		ConcurrentKafkaListenerContainerFactory<String, Payment> factory = new ConcurrentKafkaListenerContainerFactory<>();
 		Map<String, Object> props = createProps(urlMessage, serverMessage);
-		ErrorHandlingDeserializer<Payment> errorHandlingDeserializer = new ErrorHandlingDeserializer<>(
-				new AvroMessageDeserializer());
 		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
+		props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
 		props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, AvroMessageDeserializer.class.getName());
-		DefaultKafkaConsumerFactory<String, Payment> dkc = new DefaultKafkaConsumerFactory<>(props,
-				new StringDeserializer(), errorHandlingDeserializer);
+		props.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
+		DefaultKafkaConsumerFactory<String, Payment> dkc = new DefaultKafkaConsumerFactory<>(props);
 		factory.setConsumerFactory(dkc);
 		return factory;
 	}
