@@ -59,7 +59,7 @@ public class PaymentRetryToNotifyJob implements Job {
 		List<PaymentRetry> retryList = paymentRetryService.findTopElements(size).getContent();
 		retryList.forEach(retry -> {
 			try {
-				producer.sendReminder(mapper.writeValueAsString(retry), kafkaTemplatePayments, producerTopic);
+				producer.sendPaymentUpdate(mapper.writeValueAsString(retry), kafkaTemplatePayments, producerTopic);
 				log.info("Delete paymentRetry with noticeNumber: {}", retry.getNoticeNumber());
 				paymentRetryService.delete(retry); 
 			} catch (InterruptedException e) {
