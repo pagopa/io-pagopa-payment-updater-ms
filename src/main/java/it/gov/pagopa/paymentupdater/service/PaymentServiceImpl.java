@@ -75,9 +75,6 @@ public class PaymentServiceImpl implements PaymentService {
 	public Map<String, Boolean> checkPayment(String rptId)
 			throws JsonProcessingException, InterruptedException, ExecutionException {
 		Map<String, Boolean> map = new HashMap<>();
-		if (enableRestKey) {
-			throw new HttpServerErrorException(HttpStatus.UNAUTHORIZED);
-		}
 		map.put(isPaid, false);
 		try {
 			ApiClient apiClient = new ApiClient();
