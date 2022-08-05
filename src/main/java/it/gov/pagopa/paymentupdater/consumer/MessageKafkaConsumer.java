@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dto.MessageContentType;
 import it.gov.pagopa.paymentupdater.model.Payment;
 import it.gov.pagopa.paymentupdater.service.PaymentService;
@@ -27,9 +26,6 @@ public class MessageKafkaConsumer {
 
 	@Autowired
 	PaymentServiceImpl paymentServiceImpl;
-
-	@Autowired
-	ObjectMapper mapper;
 
 	private CountDownLatch latch = new CountDownLatch(1);
 	private String payload = null;
