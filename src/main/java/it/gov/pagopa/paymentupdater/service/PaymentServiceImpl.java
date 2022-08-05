@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -92,20 +93,22 @@ public class PaymentServiceImpl implements PaymentService {
 			// the reminder is already paid
 			ProxyPaymentResponse res = mapper.readValue(errorException.getResponseBodyAsString(),
 					ProxyPaymentResponse.class);
-			if (res.getDetail_v2().equals("PPT_RPT_DUPLICATA")
-					&& errorException.getStatusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
-				Payment reminder = paymentRepository.getPaymentByRptId(rptId);
-				if (Objects.nonNull(reminder)) {
-					reminder.setPaidFlag(true);
-					reminder.setPaidDate(LocalDateTime.now());
-					paymentRepository.save(reminder);
-					PaymentMessage message = new PaymentMessage();
-					message.setNoticeNumber(reminder.getContent_paymentData_noticeNumber());
-					message.setPayeeFiscalCode(reminder.getContent_paymentData_payeeFiscalCode());
-					message.setSource("payments");
-					producer.sendPaymentUpdate(mapper.writeValueAsString(message),
-							kafkaTemplatePayments, topic);
-					map.put(isPaid, true);
+			if (!StringUtils.isEmpty(res.getDetail_v2())) {
+				if (res.getDetail_v2().equals("PPT_RPT_DUPLICATA")
+						&& errorException.getStatusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
+					Payment reminder = paymentRepository.getPaymentByRptId(rptId);
+					if (Objects.nonNull(reminder)) {
+						reminder.setPaidFlag(true);
+						reminder.setPaidDate(LocalDateTime.now());
+						paymentRepository.save(reminder);
+						PaymentMessage message = new PaymentMessage();
+						message.setNoticeNumber(reminder.getContent_paymentData_noticeNumber());
+						message.setPayeeFiscalCode(reminder.getContent_paymentData_payeeFiscalCode());
+						message.setSource("payments");
+						producer.sendPaymentUpdate(mapper.writeValueAsString(message),
+								kafkaTemplatePayments, topic);
+						map.put(isPaid, true);
+					}
 				}
 				return map;
 			} else {
