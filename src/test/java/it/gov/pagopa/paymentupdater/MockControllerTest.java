@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import java.nio.charset.Charset;
+import java.time.Instant;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,6 +56,7 @@ public class MockControllerTest extends AbstractMock {
         @Test
         public void callGetMessagePayment() throws Exception {
                 Payment payment = new Payment();
+                payment.setDueDate(Instant.now().toEpochMilli());
                 mockFindIdWithResponse(payment);
                 // when
                 MockHttpServletResponse response = mvc.perform(

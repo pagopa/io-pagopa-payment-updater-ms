@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-
+import java.util.Optional;
 import io.swagger.annotations.Api;
 import it.gov.pagopa.paymentupdater.model.ApiPaymentMessage;
 import it.gov.pagopa.paymentupdater.model.InlineResponse200;
@@ -47,10 +47,14 @@ public class PaymentController {
 
 	@GetMapping(value = "/check/messages/{messageId}")
 	public ResponseEntity<ApiPaymentMessage> getMessagePayment(@PathVariable String messageId) {
+		;
 		return paymentService.findById(messageId)
 				.map(pay -> ApiPaymentMessage.builder().messageId(pay.getId())
-						.dueDate(pay.getDueDate() == null ? null : LocalDate.ofInstant(Instant.ofEpochMilli(pay.getDueDate().longValue()), 
-				                TimeZone.getDefault().toZoneId()))
+						.dueDate(Optional.ofNullable(pay.getDueDate())
+								.map(longDueDate -> LocalDate.ofInstant(Instant.ofEpochMilli(longDueDate.longValue()),
+										TimeZone.getDefault().toZoneId()))
+								.map(dueDate -> dueDate.equals(LocalDate.EPOCH) ? null : dueDate)
+								.orElseGet(() -> null))
 						.paid(pay.isPaidFlag())
 						.amount(pay.getContent_paymentData_amount())
 						.fiscalCode(pay.getFiscalCode())
