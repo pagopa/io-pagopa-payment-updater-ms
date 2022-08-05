@@ -3,7 +3,6 @@ package it.gov.pagopa.paymentupdater.config;
 import java.util.Map;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.common.serialization.BytesDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -91,10 +90,14 @@ public class ConfigConsumer extends ConfigKafka {
 	public ConcurrentKafkaListenerContainerFactory<String, PaymentRoot> kafkaListenerContainerFactoryPaymentRoot() {
 		ConcurrentKafkaListenerContainerFactory<String, PaymentRoot> factoryStatus = new ConcurrentKafkaListenerContainerFactory<>();
 		Map<String, Object> props = createProps(urlPayment, serverPayment);
-		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, BytesDeserializer.class);
+		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
+		props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
+		props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, PaymentRootDeserializer.class.getName());
+		props.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
 		DefaultKafkaConsumerFactory<String, PaymentRoot> dkc = new DefaultKafkaConsumerFactory<>(props,
 				new StringDeserializer(), new PaymentRootDeserializer(mapper));
 		factoryStatus.setConsumerFactory(dkc);
+		factoryStatus.setCommonErrorHandler(commonErrorHandler());
 		return factoryStatus;
 	}
 

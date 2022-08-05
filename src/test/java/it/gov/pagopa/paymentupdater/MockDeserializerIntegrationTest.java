@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.kafka.support.serializer.DeserializationException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -89,21 +90,22 @@ public class MockDeserializerIntegrationTest extends AbstractMock {
 
 	@Test
 	public void test_paymentDeserialize_OK() throws StreamReadException, DatabindException, IOException {
-		byte[] byteArrray = getPaymentRoot().getBytes();
+		PaymentRoot paymentRoot = getPaymentRootObject();
+		byte[] byteArray = getPaymentRoot().getBytes();
 		paymentDeserializer = new PaymentRootDeserializer(mapper);
-		Mockito.when(mapper.readValue(byteArrray, PaymentRoot.class)).thenReturn(new PaymentRoot());
-		paymentDeserializer.deserialize(null, byteArrray);
-		Assertions.assertTrue(true);
+		Mockito.when(mapper.readValue(byteArray, PaymentRoot.class)).thenReturn(paymentRoot);
+		PaymentRoot deserialized = paymentDeserializer.deserialize(null, byteArray);
+		Assertions.assertNotNull(deserialized);
 	}
 
 	@Test
 	public void test_paymentDeserialize_KO() throws StreamReadException, DatabindException, IOException {
 		String s = "ko";
-		byte[] byteArrray = s.getBytes();
+		byte[] byteArray = s.getBytes();
 		paymentDeserializer = new PaymentRootDeserializer(null);
-		Mockito.when(converter.convertToJson(Mockito.any(), Mockito.anyString())).thenReturn(byteArrray);
-		paymentDeserializer.deserialize(null, byteArrray);
-		Assertions.assertTrue(true);
+		Mockito.when(converter.convertToJson(Mockito.any(), Mockito.anyString())).thenReturn(byteArray);
+		Assertions.assertThrows(DeserializationException.class,
+				() -> paymentDeserializer.deserialize(null, byteArray));
 	}
 
 }
