@@ -49,7 +49,7 @@ microservice-chart:
       - type: cpu
         metadata:
           type: AverageValue
-          value: '70'
+          value: '60'
 
   envConfig:
     # required
