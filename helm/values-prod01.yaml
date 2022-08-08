@@ -49,7 +49,7 @@ microservice-chart:
     triggers:
       - type: cpu
         metadata:
-          type: Utilization
+          type: AverageValue
           value: '60'
 
   envConfig:
