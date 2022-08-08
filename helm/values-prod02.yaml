@@ -1,6 +1,9 @@
 microservice-chart:
   namespace: 'payments'
 
+  canaryDelivery:
+    create: false
+
   image:
     repository: 'iopcommonacr.azurecr.io/io-pagopa-payment-updater-ms'
     tag: 'latest'
