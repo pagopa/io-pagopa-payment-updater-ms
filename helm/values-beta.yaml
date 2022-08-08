@@ -56,17 +56,16 @@ microservice-chart:
     WEBSITE_SITE_NAME: 'io-p-weubeta-pagopa-payment-updater-ms' # required to show cloud role name in application insights
     # app specific
     BOOTSTRAP_SERVER_MESSAGE: 'io-p-messages-weu-prod01-evh-ns.servicebus.windows.net:9093' # event-hub write by fn-messages-cqrs
-    BOOTSTRAP_SERVER_PAYMENT: 'pagopa-d-evh-ns01.servicebus.windows.net:9093' # event-hub pagopa
+    BOOTSTRAP_SERVER_PAYMENT: 'pagopa-p-evh-ns01.servicebus.windows.net:9093' # event-hub pagopa
     BOOTSTRAP_SERVER_PAYMENTUPDATES: 'io-p-payments-weu-prod01-evh-ns.servicebus.windows.net:9093' # event-hub internal
     CHECKPOINT_SIZE: '10'
     KAFKA_MESSAGE: 'messages-payments' # event-hub write by fn-messages-cqrs
     KAFKA_PAYMENTS: 'nodo-dei-pagamenti-biz-evt' # event-hub pagopa
     KAFKA_PAYMENT_UPDATES: 'payment-updates' # event-hub internal
-    MESSAGE_STATUS_ENDPOINT: '' # TODO not used, remove next days
     MONGO_DATABASE: 'db' # mongodb internal
     MONGO_COLLECTION_NAME: 'payment' # mongodb internal
-    ENABLE_REST_KEY: 'true' # TODO not used, remove next days
-    PROXY_ENDPOINT: 'https://api.uat.platform.pagopa.it/checkout/auth/payments/v1' # TODO not used, remove next days
+    ENABLE_REST_KEY: 'true' # use pagopa proxy
+    PROXY_ENDPOINT: 'https://api.platform.pagopa.it/checkout/auth/payments/v1'
     RESTCALL_INTERVAL_FUNCTION: '10000'
     RESTCALL_MAX_ATTEMPTS: '3'
     SASL_MECHANISM_PAYMENT: 'PLAIN'
@@ -85,10 +84,10 @@ microservice-chart:
     APPLICATIONINSIGHTS_CONNECTION_STRING: 'appinsights-connection-string'
     # app specific
     KAFKA_URL_MESSAGE: 'messages-payments-io-p-messages-weu-prod01-evh-jaas-connection-string' # event-hub write by fn-messages-cqrs
-    KAFKA_URL_PAYMENT: 'nodo-dei-pagamenti-biz-evt-pagopa-d-evh-ns01-evh-jaas-connection-string' # event-hub pagopa
+    KAFKA_URL_PAYMENT: 'nodo-dei-pagamenti-biz-evt-pagopa-p-evh-ns01-evh-jaas-connection-string' # event-hub pagopa
     KAFKA_URL_PAYMENTUPDATES: 'payment-updates-io-payment-updater-weu-prod01-evh-jaas-connection-string' # event-hub internal
     MONGO_DATABASE_URI: 'mongodb-connection-string' # mongodb internal
-    PROXY_ENDPOINT_SUBSCRIPTION_KEY: 'pagopa-proxy-uat-subscription-key' # TODO not used, remove next days
+    PROXY_ENDPOINT_SUBSCRIPTION_KEY: 'pagopa-proxy-prod-subscription-key'
 
   keyvault:
     name: 'io-p-payments-kv'
