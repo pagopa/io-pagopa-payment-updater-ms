@@ -1,6 +1,9 @@
 microservice-chart:
   namespace: 'payments'
 
+  canaryDelivery:
+    create: false
+
   image:
     repository: 'iopcommonacr.azurecr.io/io-pagopa-payment-updater-ms'
     tag: 'latest'
@@ -72,7 +75,7 @@ microservice-chart:
     SASL_MECHANISM_PAYMENT: 'PLAIN'
     SECURITY_PROTOCOL_PAYMENT: 'SASL_SSL'
     SCHEDULER_RETRY_ACTIVE: 'true'
-    SCHEDULER_RETRY_SIZE : '100'
+    SCHEDULER_RETRY_SIZE: '100'
     RETRY_MAX_ATTEMPTS: '10'
     RETRY_INTERVAL_FUNCTION: '10000'
     QUARTZ_SCHEDULER_TIMER_NOTIFY: '0 /3 * ? * *'
