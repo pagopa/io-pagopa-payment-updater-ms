@@ -29,15 +29,16 @@ microservice-chart:
   ingress:
     create: true
     host: 'weubeta.payments.internal.io.pagopa.it'
+    # path: '/api/v1/payment/(.*)'
     path: '/(api/v1/payment/.*)'
 
   resources:
     requests:
-      memory: '256Mi'
-      cpu: '50m'
+      memory: '384Mi'
+      cpu: '200m'
     limits:
-      memory: '512Mi'
-      cpu: '300m'
+      memory: '384Mi'
+      cpu: '200m'
 
   autoscaling:
     enable: true
@@ -48,8 +49,8 @@ microservice-chart:
     triggers:
       - type: cpu
         metadata:
-          type: AverageValue
-          value: '60'
+          type: Utilization
+          value: '70'
 
   envConfig:
     # required
