@@ -103,8 +103,10 @@ public class PaymentServiceImpl implements PaymentService {
 					message.setNoticeNumber(reminder.getContent_paymentData_noticeNumber());
 					message.setPayeeFiscalCode(reminder.getContent_paymentData_payeeFiscalCode());
 					message.setSource("payments");
+					//TODO! check: se dueDate è diversa allora settala, altrimenti niente
 					producer.sendReminder(mapper.writeValueAsString(message), kafkaTemplatePayments, topic);
 					map.put(isPaid, true);
+					//TODO! inserire la dueDate come risposta
 				}
 				return map;
 			} else {
