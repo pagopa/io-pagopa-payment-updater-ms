@@ -31,7 +31,9 @@ paths:
                 type: object
                 properties:
                   isPaid:
-                    type: boolean
+                    type: string
+                  dueDate:
+                    type: string
           description: 'check if the message has been paid'
         '400':
           $ref: '#/components/responses/400BadRequest'

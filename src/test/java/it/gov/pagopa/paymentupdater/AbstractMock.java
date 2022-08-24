@@ -64,18 +64,20 @@ public abstract class AbstractMock {
 	}
 
 	protected Payment selectReminderMockObject(String type, String id, String contentType, String fiscalCode,
-			int numReminder) {
+			int numReminder, String rptId) {
 		Payment returnReminder1 = null;
 		returnReminder1 = new Payment();
 		returnReminder1.setId(id);
 		returnReminder1.setContent_type(MessageContentType.valueOf(contentType));
 		returnReminder1.setFiscalCode(fiscalCode);
+		returnReminder1.setRptId(rptId);
+		returnReminder1.setDueDate(1652572800L);
 		return returnReminder1;
 
 	}
 
 	protected String selectPaymentMessageObject(String type, String messageId, String noticeNumber,
-			String payeeFiscalCode, boolean paid, LocalDate dueDate, double amount, String source, String fiscalCode) throws JsonProcessingException {
+			String payeeFiscalCode, boolean paid, Long dueDate, double amount, String source, String fiscalCode) throws JsonProcessingException {
 		PaymentMessage paymentMessage = null;
 		paymentMessage = new PaymentMessage(messageId, noticeNumber, payeeFiscalCode, paid, dueDate, amount, source,
 				fiscalCode);

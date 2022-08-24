@@ -1,12 +1,18 @@
 package it.gov.pagopa.paymentupdater.service;
 
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TimeZone;
 import java.util.concurrent.ExecutionException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +33,7 @@ import it.gov.pagopa.paymentupdater.producer.PaymentProducer;
 import it.gov.pagopa.paymentupdater.repository.PaymentRepository;
 import it.gov.pagopa.paymentupdater.restclient.proxy.ApiClient;
 import it.gov.pagopa.paymentupdater.restclient.proxy.api.DefaultApi;
+import it.gov.pagopa.paymentupdater.restclient.proxy.model.PaymentRequestsGetResponse;
 import it.gov.pagopa.paymentupdater.util.Constants;
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,7 +63,7 @@ public class PaymentServiceImpl implements PaymentService {
 	@Autowired
 	@Qualifier("kafkaTemplatePayments")
 	private KafkaTemplate<String, String> kafkaTemplatePayments;
-	
+
 	private static String isPaid = "isPaid";
 
 	@Override
@@ -72,21 +79,23 @@ public class PaymentServiceImpl implements PaymentService {
 	}
 
 	@Override
-	public Map<String, Boolean> checkPayment(String rptId) throws JsonProcessingException, InterruptedException, ExecutionException {
-		Map<String, Boolean> map = new HashMap<>();
-		map.put(isPaid, false);
+	public Map<String, String> checkPayment(String rptId) throws JsonProcessingException, InterruptedException, ExecutionException {
+		Map<String, String> map = new HashMap<>();
+		map.put(isPaid, "false");
 		try {
-			
+
 			ApiClient apiClient = new ApiClient();
 			if (enableRestKey) {
 				apiClient.setApiKey(proxyEndpointKey);
 			}
 			apiClient.setBasePath(urlProxy);
-			
+
 			DefaultApi defaultApi = new DefaultApi();
-			defaultApi.setApiClient(apiClient);		
-			defaultApi.getPaymentInfo(rptId, Constants.X_CLIENT_ID);			
-	
+			defaultApi.setApiClient(apiClient);	
+			rptId = "ALSDK54654asdA1234567890200";
+			PaymentRequestsGetResponse resp = defaultApi.getPaymentInfo(rptId, Constants.X_CLIENT_ID);	
+			map.put("dueDate", resp.getDueDate());
+
 			return map;
 		} catch (HttpServerErrorException errorException) {
 			// the reminder is already paid
@@ -103,10 +112,23 @@ public class PaymentServiceImpl implements PaymentService {
 					message.setNoticeNumber(reminder.getContent_paymentData_noticeNumber());
 					message.setPayeeFiscalCode(reminder.getContent_paymentData_payeeFiscalCode());
 					message.setSource("payments");
-					//TODO! check: se dueDate è diversa allora settala, altrimenti niente
+					
+					
+					if(StringUtils.isNotEmpty(res.getDuedate())) {
+						LocalDate localDateDueDate = LocalDate.parse(res.getDuedate());
+					
+						long longDueDate = reminder.getDueDate() != null ? reminder.getDueDate().longValue() : 0L;
+						LocalDate reminderDueDate = LocalDateTime.ofInstant(Instant.ofEpochSecond(longDueDate),
+	                               TimeZone.getDefault().toZoneId()).toLocalDate();
+						
+						if(!localDateDueDate.equals(reminderDueDate)) {
+							message.setDueDate(localDateDueDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli());
+						}
+					}
+
 					producer.sendReminder(mapper.writeValueAsString(message), kafkaTemplatePayments, topic);
-					map.put(isPaid, true);
-					//TODO! inserire la dueDate come risposta
+					map.put(isPaid, "true");
+					map.put("dueDate", res.getDuedate());
 				}
 				return map;
 			} else {

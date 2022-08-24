@@ -38,7 +38,7 @@ public class PaymentController {
 	public ResponseEntity<InlineResponse200> checkProxy(@PathVariable String rptId) {
 		try {
 			var result = paymentService.checkPayment(rptId);
-			return new ResponseEntity<>(new InlineResponse200(result.get("isPaid")), HttpStatus.OK);
+			return new ResponseEntity<>(new InlineResponse200(result.get("isPaid"),result.get("dueDate")), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(
 					HttpStatus.INTERNAL_SERVER_ERROR);

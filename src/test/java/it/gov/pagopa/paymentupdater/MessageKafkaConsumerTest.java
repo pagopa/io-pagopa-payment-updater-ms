@@ -1,6 +1,7 @@
 package it.gov.pagopa.paymentupdater;
 
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.Test;
@@ -57,15 +58,18 @@ public class MessageKafkaConsumerTest extends AbstractMock{
 	@Test
     public void test_producerKafka_Ok() throws JsonProcessingException, InterruptedException, ExecutionException {
     	kafkaTemplate = new KafkaTemplate<>((ProducerFactory<String, String>) ApplicationContextProvider.getBean("producerFactory"));
-    	producer.sendReminder(selectPaymentMessageObject("1231", "", "2121", "AAABBB77Y66A444A", false, LocalDate.now(), 0.0, "test", "BBBPPP77J99A888A"), kafkaTemplate, "payment-updates");
+    	producer.sendReminder(selectPaymentMessageObject("1231", "", "2121", "AAABBB77Y66A444A", false, LocalDate.now().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(), 0.0, "test", "BBBPPP77J99A888A"), kafkaTemplate, "payment-updates");
     	Assertions.assertTrue(true);
     }
     
 	@Test
 	public void test_messageEventKafkaConsumer_GENERIC_OK() throws Throwable {
 		messageKafkaConsumer = (MessageKafkaConsumer) ApplicationContextProvider.getBean("messageEventKafkaConsumer");
-		mockSaveWithResponse(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3));
-		messageKafkaConsumer.messageKafkaListener(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3));
+		mockSaveWithResponse(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3, "ALSDK54654asdA1234567890200"));
+		mockGetPaymentByNoticeNumber(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3, "ALSDK54654asdA1234567890200"));
+		mockSaveWithResponse(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3, "ALSDK54654asdA1234567890200"));
+		//TODO! mock del metodo getPaymentInfo
+		messageKafkaConsumer.messageKafkaListener(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3, "ALSDK54654asdA1234567890200"));
 		Assertions.assertTrue(messageKafkaConsumer.getPayload().contains("paidFlag=false"));
 		Assertions.assertEquals(0L, messageKafkaConsumer.getLatch().getCount());
 	}

@@ -13,11 +13,11 @@ import org.springframework.kafka.annotation.KafkaListener;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-
 import dto.MessageContentType;
 import it.gov.pagopa.paymentupdater.model.Payment;
 import it.gov.pagopa.paymentupdater.service.PaymentService;
 import it.gov.pagopa.paymentupdater.service.PaymentServiceImpl;
+import it.gov.pagopa.paymentupdater.util.PaymentUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -48,10 +48,14 @@ public class MessageKafkaConsumer {
 				String rptId = reminder.getContent_paymentData_payeeFiscalCode()
 						.concat(reminder.getContent_paymentData_noticeNumber());
 				reminder.setRptId(rptId);
-				Map<String, Boolean> map = paymentServiceImpl.checkPayment(rptId);
+				Map<String, String> map = paymentServiceImpl.checkPayment(rptId);
 				if (map.containsKey("isPaid")) {
-					reminder.setPaidFlag(map.get("isPaid"));
+					reminder.setPaidFlag(Boolean.parseBoolean(map.get("isPaid")));
 				}
+				if (map.containsKey("dueDate")) {
+					String dueDate = map.get("dueDate");
+					PaymentUtil.checkDueDate(dueDate, reminder);
+				}		
 				paymentService.save(reminder);
 			}
 		}
