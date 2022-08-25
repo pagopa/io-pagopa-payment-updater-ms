@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -20,10 +21,10 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.gov.pagopa.paymentupdater.consumer.MessageKafkaConsumer;
 import it.gov.pagopa.paymentupdater.consumer.PaymentKafkaConsumer;
+import it.gov.pagopa.paymentupdater.model.Payment;
 import it.gov.pagopa.paymentupdater.producer.PaymentProducer;
 import it.gov.pagopa.paymentupdater.util.ApplicationContextProvider;
 
@@ -35,20 +36,19 @@ import it.gov.pagopa.paymentupdater.util.ApplicationContextProvider;
 @EmbeddedKafka(partitions = 1, brokerProperties = { "listeners=PLAINTEXT://localhost:9093", "port=9093" })
 public class MessageKafkaConsumerTest extends AbstractMock{
 	
-    @Autowired
+	@InjectMocks
     private PaymentProducer producer;
     
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
     
-    @InjectMocks
+    @Mock
     MessageKafkaConsumer messageKafkaConsumer;
     
     @InjectMocks
     PaymentKafkaConsumer paymentEventKafkaConsumer;
-    
-	@Autowired
-	ObjectMapper mapper;
+
+
 	
 	@Value("${kafka.paymentupdates}")
 	private String producerTopic;
@@ -65,11 +65,14 @@ public class MessageKafkaConsumerTest extends AbstractMock{
 	@Test
 	public void test_messageEventKafkaConsumer_GENERIC_OK() throws Throwable {
 		messageKafkaConsumer = (MessageKafkaConsumer) ApplicationContextProvider.getBean("messageEventKafkaConsumer");
-		mockSaveWithResponse(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3, "ALSDK54654asdA1234567890200"));
-		mockGetPaymentByNoticeNumber(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3, "ALSDK54654asdA1234567890200"));
-		mockSaveWithResponse(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3, "ALSDK54654asdA1234567890200"));
+		Payment payment = new Payment();
+		mockGetPaymentByNoticeNumberAndFiscalCodeWithResponse(payment);
+		mockSaveWithResponse(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3, "ALSDKdcoekroicjre200", "ALSDKdcoek", "roicjre200"));
+		mockGetPaymentByNoticeNumber(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3, "ALSDKdcoekroicjre200", "ALSDKdcoek", "roicjre200"));
+		mockSaveWithResponse(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3, "ALSDKdcoekroicjre200", "ALSDKdcoek", "roicjre200"));
 		//TODO! mock del metodo getPaymentInfo
-		messageKafkaConsumer.messageKafkaListener(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3, "ALSDK54654asdA1234567890200"));
+		mockGetPaymentInfo();
+		messageKafkaConsumer.messageKafkaListener(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3,"ALSDKdcoekroicjre200", "ALSDKdcoek", "roicjre200"));
 		Assertions.assertTrue(messageKafkaConsumer.getPayload().contains("paidFlag=false"));
 		Assertions.assertEquals(0L, messageKafkaConsumer.getLatch().getCount());
 	}
