@@ -3,7 +3,6 @@ package it.gov.pagopa.paymentupdater.service;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
@@ -59,7 +58,13 @@ public class PaymentServiceImpl implements PaymentService {
 
 	@Autowired
 	PaymentProducer producer;
-
+	
+	@Autowired
+	DefaultApi defaultApi;
+	
+	@Autowired
+	ApiClient apiClient;
+	
 	@Autowired
 	@Qualifier("kafkaTemplatePayments")
 	private KafkaTemplate<String, String> kafkaTemplatePayments;
@@ -83,20 +88,17 @@ public class PaymentServiceImpl implements PaymentService {
 		Map<String, String> map = new HashMap<>();
 		map.put(isPaid, "false");
 		try {
-
-			ApiClient apiClient = new ApiClient();
 			if (enableRestKey) {
 				apiClient.setApiKey(proxyEndpointKey);
 			}
 			apiClient.setBasePath(urlProxy);
 
-			DefaultApi defaultApi = new DefaultApi();
 			defaultApi.setApiClient(apiClient);	
-			rptId = "ALSDK54654asdA1234567890200";
 			PaymentRequestsGetResponse resp = defaultApi.getPaymentInfo(rptId, Constants.X_CLIENT_ID);	
 			map.put("dueDate", resp.getDueDate());
 
 			return map;
+			
 		} catch (HttpServerErrorException errorException) {
 			// the reminder is already paid
 			ProxyPaymentResponse res = mapper.readValue(errorException.getResponseBodyAsString(),
