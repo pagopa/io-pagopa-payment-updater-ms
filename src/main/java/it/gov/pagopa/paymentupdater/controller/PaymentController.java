@@ -37,7 +37,7 @@ public class PaymentController {
 	@GetMapping(value = "/check/{rptId}")
 	public ResponseEntity<InlineResponse200> checkProxy(@PathVariable String rptId) {
 		try {
-			var result = paymentService.checkPayment(rptId);
+			var result = paymentService.checkPaymentRest(rptId);
 			return new ResponseEntity<>(new InlineResponse200(result.get("isPaid")), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(

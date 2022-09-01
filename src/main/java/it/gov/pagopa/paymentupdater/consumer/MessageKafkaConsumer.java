@@ -36,7 +36,7 @@ public class MessageKafkaConsumer {
 		log.debug("Processing messageId=" + paymentMessage.getId() + " time=" + new Date().toString()
 				+ "paymentMessageContentType="
 				+ paymentMessage.getContent_type());
-		if (Objects.nonNull(paymentMessage) && Objects.nonNull(paymentMessage.getContent_type())
+		if (Objects.nonNull(paymentMessage.getContent_type())
 				&& paymentMessage.getContent_type().equals(MessageContentType.PAYMENT)) {
 			log.debug("Received message with id: {} ", paymentMessage.getId());
 			checkNullInMessage(paymentMessage);
@@ -48,10 +48,7 @@ public class MessageKafkaConsumer {
 				String rptId = paymentMessage.getContent_paymentData_payeeFiscalCode()
 						.concat(paymentMessage.getContent_paymentData_noticeNumber());
 				paymentMessage.setRptId(rptId);
-				Map<String, Boolean> map = paymentServiceImpl.checkPayment(rptId);
-				if (map.containsKey("isPaid")) {
-					paymentMessage.setPaidFlag(map.get("isPaid"));
-				}
+				paymentServiceImpl.checkPayment(paymentMessage);
 				paymentService.save(paymentMessage);
 			}
 		}
