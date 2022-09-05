@@ -61,7 +61,7 @@ microservice-chart:
     CHECKPOINT_SIZE: '10'
     KAFKA_MESSAGE: 'messages-payments' # event-hub write by fn-messages-cqrs
     KAFKA_PAYMENTS: 'nodo-dei-pagamenti-biz-evt' # event-hub pagopa
-    KAFKA_PAYMENT_UPDATES: 'io-payment-updater' # event-hub internal
+    KAFKA_PAYMENT_UPDATES: 'payment-updates' # event-hub internal
     MESSAGE_STATUS_ENDPOINT: '' # TODO not used, remove next days
     MONGO_DATABASE: 'db' # mongodb internal
     MONGO_COLLECTION_NAME: 'payment' # mongodb internal
@@ -86,7 +86,7 @@ microservice-chart:
     # app specific
     KAFKA_URL_MESSAGE: 'messages-payments-io-p-messages-weu-prod01-evh-jaas-connection-string' # event-hub write by fn-messages-cqrs
     KAFKA_URL_PAYMENT: 'nodo-dei-pagamenti-biz-evt-pagopa-d-evh-ns01-evh-jaas-connection-string' # event-hub pagopa
-    KAFKA_URL_PAYMENTUPDATES: 'io-payment-updater-io-payment-updater-weu-prod01-evh-jaas-connection-string' # event-hub internal
+    KAFKA_URL_PAYMENTUPDATES: 'payment-updates-io-payment-updater-weu-prod01-evh-jaas-connection-string' # event-hub internal
     MONGO_DATABASE_URI: 'mongodb-connection-string' # mongodb internal
     PROXY_ENDPOINT_SUBSCRIPTION_KEY: 'pagopa-proxy-uat-subscription-key' # TODO not used, remove next days
 
