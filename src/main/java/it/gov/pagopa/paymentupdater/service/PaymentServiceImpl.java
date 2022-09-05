@@ -112,50 +112,6 @@ public class PaymentServiceImpl implements PaymentService {
 		}
 	}
 	
-	@Override
-	public Map<String, Boolean> checkPaymentRest(String rptId)
-			throws JsonProcessingException, InterruptedException, ExecutionException {
-		Map<String, Boolean> map = new HashMap<>();
-		map.put(isPaid, false);
-		try {
-			ApiClient apiClient = new ApiClient();
-			if (enableRestKey) {
-				apiClient.addDefaultHeader("Ocp-Apim-Subscription-Key", proxyEndpointKey);
-			}
-			apiClient.setBasePath(urlProxy);
-
-			DefaultApi defaultApi = new DefaultApi();
-			defaultApi.setApiClient(apiClient);
-			defaultApi.getPaymentInfo(rptId, Constants.X_CLIENT_ID);
-
-			return map;
-		} catch (HttpServerErrorException errorException) {
-			// the reminder is already paid
-			ProxyPaymentResponse res = mapper.readValue(errorException.getResponseBodyAsString(),
-					ProxyPaymentResponse.class);
-			if (!StringUtils.isEmpty(res.getDetail_v2())) {
-				if (res.getDetail_v2().equals("PPT_RPT_DUPLICATA")
-						&& errorException.getStatusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
-					Payment reminder = paymentRepository.getPaymentByRptId(rptId);
-					if (Objects.nonNull(reminder)) {
-						reminder.setPaidFlag(true);
-						reminder.setPaidDate(LocalDateTime.now());
-						paymentRepository.save(reminder);
-						PaymentMessage message = new PaymentMessage();
-						message.setNoticeNumber(reminder.getContent_paymentData_noticeNumber());
-						message.setPayeeFiscalCode(reminder.getContent_paymentData_payeeFiscalCode());
-						message.setSource("payments");
-						producer.sendPaymentUpdate(mapper.writeValueAsString(message),
-								kafkaTemplatePayments, topic);
-						map.put(isPaid, true);
-					}
-				}
-				return map;
-			} else {
-				throw errorException;
-			}
-		}
-	}
 
 	@Override
 	public Optional<Payment> findById(String messageId) {

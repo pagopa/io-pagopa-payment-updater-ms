@@ -43,15 +43,6 @@ public class MockControllerTest extends AbstractMock {
         @Mock
         private PaymentProducer producer;
 
-        private void callProxy() throws Exception {
-                // when
-                MockHttpServletResponse response = mvc.perform(
-                                get("/api/v1/payment/check/ABC")
-                                                .accept(MediaType.APPLICATION_JSON))
-                                .andReturn().getResponse();
-                // then
-                assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-        }
 
         @Test
         public void callGetMessagePayment() throws Exception {
@@ -68,11 +59,6 @@ public class MockControllerTest extends AbstractMock {
         }
 
         @Test
-        public void test_checkAssistenzaIsPaidFalse() throws Exception {
-                callProxy();
-        }
-
-        @Test
         public void test_checkAssistenzaIsPaidTrue() throws Exception {
                 mockGetPaymentByNoticeNumber(getTestReminder());
                 mockSaveWithResponse(getTestReminder());
@@ -83,7 +69,7 @@ public class MockControllerTest extends AbstractMock {
                                 ArgumentMatchers.any(HttpMethod.class),
                                 ArgumentMatchers.any(HttpEntity.class),
                                 ArgumentMatchers.<Class<String>>any())).thenThrow(errorResponse);
-                callProxy();
+
         }
 
 }
