@@ -1,76 +1,49 @@
 package it.gov.pagopa.paymentupdater.deserialize;
 
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-
+import org.apache.avro.io.DatumReader;
+import org.apache.avro.io.Decoder;
+import org.apache.avro.io.DecoderFactory;
+import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.common.serialization.Deserializer;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import dto.MessageContentType;
-import it.gov.pagopa.paymentupdater.model.JsonLoader;
+import dto.message;
+import it.gov.pagopa.paymentupdater.exception.AvroDeserializerException;
+import it.gov.pagopa.paymentupdater.exception.SkipDataException;
+import it.gov.pagopa.paymentupdater.exception.UnexpectedDataException;
 import it.gov.pagopa.paymentupdater.model.Payment;
-import it.gov.pagopa.paymentupdater.util.PaymentUtil;
-import it.gov.pagopa.paymentupdater.util.TelemetryCustomEvent;
+import it.gov.pagopa.paymentupdater.util.MessagePaymentMapper;
 import lombok.extern.slf4j.Slf4j;
-import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
 
 @Slf4j
 public class AvroMessageDeserializer implements Deserializer<Payment> {
 
-	JsonLoader schema;
-	ObjectMapper mapper;
-	JsonAvroConverter converter;
-
-	public void setConverter(JsonAvroConverter converter) {
-		this.converter = converter;
-	}
-
-	public AvroMessageDeserializer(JsonLoader jsSchema, ObjectMapper objMapper) {
-		schema = jsSchema;
-		mapper = objMapper;
-	}
+	private final DatumReader<message> reader = new SpecificDatumReader<>(message.class);
 
 	@Override
 	public Payment deserialize(String topic, byte[] bytes) {
-		log.info("start avro message deserialize");
 		Payment returnObject = null;
-		if (bytes != null) {
-			try {
-				byte[] binaryJson = converter.convertToJson(bytes, schema.getJsonString());
-				String avroJson = new String(binaryJson);
-				log.info("The avro json: {}", avroJson);
-				returnObject = mapper.readValue(avroJson, Payment.class);
-			} catch (Exception e) {
-				log.error("Error in deserializing the Reminder for consumer message");
-				log.error(e.getMessage());
-			}
-			if ((returnObject == null || returnObject.getContent_type() == null ||  
-					((returnObject.getContent_type().equals((MessageContentType.PAYMENT))) 
-					&& (StringUtils.isEmpty(returnObject.getContent_paymentData_noticeNumber())
-					|| StringUtils.isEmpty(returnObject.getContent_paymentData_payeeFiscalCode())))
-					)) {
-				handleErrorMessage(bytes);
-				returnObject = new Payment();
-			}
-
+		if (bytes == null)
+			throw new AvroDeserializerException(
+					"Error in deserializing the Reminder for consumer message|bytes=null", bytes);
+		try {
+			Decoder decoder = DecoderFactory.get().binaryDecoder(bytes, null);
+			message avroMessage = reader.read(null, decoder);
+			returnObject = MessagePaymentMapper.messageToPayment(avroMessage);
+		} catch (Exception e) {
+			log.error("Error in deserializing the Reminder for consumer message|ERROR=" + e.getMessage());
+			throw new AvroDeserializerException(
+					"Error in deserializing the Reminder for consumer message|ERROR=" + e.getMessage(), bytes);
 		}
+		if (returnObject == null || returnObject.getContent_type() == null) {
+			throw new SkipDataException("Skip Data that not satisfies constraints", returnObject);
+		}
+
+		if (returnObject.getContent_type().equals(MessageContentType.PAYMENT)
+				&& (StringUtils.isEmpty(returnObject.getContent_paymentData_noticeNumber())
+						|| StringUtils.isEmpty(returnObject.getContent_paymentData_payeeFiscalCode())))
+			throw new UnexpectedDataException("Unexpected Data", returnObject);
 		return returnObject;
 	}
-
-
-	private void handleErrorMessage(byte[] bytes) {
-		try {
-			String message = new String(bytes, StandardCharsets.UTF_8);
-			log.error("The error Message: {}", message);
-			TelemetryCustomEvent.writeTelemetry("ErrorDeserializingMessage", new HashMap<>(),
-					PaymentUtil.getErrorMap(message));
-
-		} catch (Exception e1) {
-			log.error(e1.getMessage());
-		}
-	}
-
 
 }

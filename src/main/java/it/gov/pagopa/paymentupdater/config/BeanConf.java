@@ -2,32 +2,23 @@ package it.gov.pagopa.paymentupdater.config;
 
 import java.util.Map;
 
+import org.apache.kafka.clients.CommonClientConfigs;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.config.SaslConfigs;
 import org.springframework.beans.factory.annotation.Value;
 
-public class BeanConf{
-
-	@Value("${bootstrap.servers}")
-	protected String bootstrapServersKey;
-	@Value("${security.protocol}")
-	protected String securityProtocolKey;
-	@Value("${sasl.mechanism}")
-	protected String saslMechanismKey;
-	@Value("${sasl.jaas.conf}")
-	protected String saslJaasConfKey;
+public class BeanConf {
 
 	@Value("${security.protocol.payment}")
 	protected String securityProtocolKeyPayValue;
 	@Value("${sasl.mechanism.payment}")
 	protected String saslMechanismKeyPayValue;
 
-
 	public void getProps(Map<String, Object> props, String url, String server) {
-		props.put(bootstrapServersKey, server);
-		props.put(securityProtocolKey, securityProtocolKeyPayValue);
-		props.put(saslMechanismKey, saslMechanismKeyPayValue);
-		props.put(saslJaasConfKey, url);
+		props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, server);
+		props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, securityProtocolKeyPayValue);
+		props.put(SaslConfigs.SASL_MECHANISM, saslMechanismKeyPayValue);
+		props.put(SaslConfigs.SASL_JAAS_CONFIG, url);
 	}
 
-	
-	
 }

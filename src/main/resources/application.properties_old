@@ -46,13 +46,6 @@ logging.level.it.go.pagopa = DEBUG
 value.deserializer.specific.avro.reader=true 
 spring.kafka.consumer.properties.specific.avro.reader=true
 
-
-#kafka
-bootstrap.servers=bootstrap.servers
-security.protocol=security.protocol
-sasl.mechanism=sasl.mechanism
-sasl.jaas.conf=sasl.jaas.config
-
 bootstrap.servers.payment=io-space-hub-pu-messages.servicebus.windows.net:9093
 security.protocol.payment=SASL_SSL
 sasl.mechanism.payment=PLAIN

@@ -4,6 +4,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.TimeZone;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.Api;
 import it.gov.pagopa.paymentupdater.model.ApiPaymentMessage;
-import it.gov.pagopa.paymentupdater.model.InlineResponse200;
 import it.gov.pagopa.paymentupdater.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 
@@ -34,16 +34,6 @@ public class PaymentController {
 	@Autowired
 	PaymentService paymentService;
 
-	@GetMapping(value = "/check/{rptId}")
-	public ResponseEntity<InlineResponse200> checkProxy(@PathVariable String rptId) {
-		try {
-			var result = paymentService.checkPayment(rptId);
-			return new ResponseEntity<>(new InlineResponse200(result.get("isPaid"),result.get("dueDate")), HttpStatus.OK);
-		} catch (Exception e) {
-			return new ResponseEntity<>(
-					HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
 
 	@GetMapping(value = "/check/messages/{messageId}")
 	public ResponseEntity<ApiPaymentMessage> getMessagePayment(@PathVariable String messageId) {
@@ -51,6 +41,11 @@ public class PaymentController {
 				.map(pay -> ApiPaymentMessage.builder().messageId(pay.getId())
 						.dueDate(pay.getDueDate() == null ? null : LocalDate.ofInstant(Instant.ofEpochMilli(pay.getDueDate().longValue()), 
 				                TimeZone.getDefault().toZoneId()))
+						.dueDate(Optional.ofNullable(pay.getDueDate())
+								.map(longDueDate -> LocalDate.ofInstant(Instant.ofEpochMilli(longDueDate.longValue()),
+										TimeZone.getDefault().toZoneId()))
+								.map(dueDate -> dueDate.equals(LocalDate.EPOCH) ? null : dueDate)
+								.orElseGet(() -> null))
 						.paid(pay.isPaidFlag())
 						.amount(pay.getContent_paymentData_amount())
 						.fiscalCode(pay.getFiscalCode())

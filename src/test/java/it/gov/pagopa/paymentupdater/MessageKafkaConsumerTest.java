@@ -58,7 +58,7 @@ public class MessageKafkaConsumerTest extends AbstractMock{
 	@Test
     public void test_producerKafka_Ok() throws JsonProcessingException, InterruptedException, ExecutionException {
     	kafkaTemplate = new KafkaTemplate<>((ProducerFactory<String, String>) ApplicationContextProvider.getBean("producerFactory"));
-    	producer.sendReminder(selectPaymentMessageObject("1231", "", "2121", "AAABBB77Y66A444A", false, LocalDate.now().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(), 0.0, "test", "BBBPPP77J99A888A"), kafkaTemplate, "payment-updates");
+    	producer.sendPaymentUpdate(selectPaymentMessageObject("1231", "", "2121", "AAABBB77Y66A444A", false, LocalDate.now().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(), 0.0, "test", "BBBPPP77J99A888A"), kafkaTemplate, "payment-updates");
     	Assertions.assertTrue(true);
     }
     
@@ -70,7 +70,6 @@ public class MessageKafkaConsumerTest extends AbstractMock{
 		mockSaveWithResponse(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3, "ALSDKdcoekroicjre200", "ALSDKdcoek", "roicjre200"));
 		mockGetPaymentByNoticeNumber(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3, "ALSDKdcoekroicjre200", "ALSDKdcoek", "roicjre200"));
 		mockSaveWithResponse(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3, "ALSDKdcoekroicjre200", "ALSDKdcoek", "roicjre200"));
-		//TODO! mock del metodo getPaymentInfo
 		mockGetPaymentInfo();
 		messageKafkaConsumer.messageKafkaListener(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3,"ALSDKdcoekroicjre200", "ALSDKdcoek", "roicjre200"));
 		Assertions.assertTrue(messageKafkaConsumer.getPayload().contains("paidFlag=false"));

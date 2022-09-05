@@ -128,9 +128,7 @@ public abstract class AbstractMock {
 		return returnReminder1;
 	}
 
-	protected String selectPaymentMessageObject(String type, String messageId, String noticeNumber,
-			String payeeFiscalCode, boolean paid, Long dueDate, double amount, String source, String fiscalCode)
-			throws JsonProcessingException {
+	protected String selectPaymentMessageObject(String type, String messageId, String noticeNumber,	String payeeFiscalCode, boolean paid, Long dueDate, double amount, String source, String fiscalCode)throws JsonProcessingException {
 		PaymentMessage paymentMessage = null;
 		paymentMessage = new PaymentMessage(messageId, noticeNumber, payeeFiscalCode, paid, dueDate, amount, source,
 				fiscalCode);
@@ -169,7 +167,7 @@ public abstract class AbstractMock {
 		return retry;
 	}
 
-	protected String getPaymentRoot() {
+	protected PaymentRoot getPaymentRootObject() {
 		PaymentRoot pr = new PaymentRoot();
 		Creditor creditor = new Creditor();
 		DebtorPosition debtorPosition = new DebtorPosition();
@@ -228,7 +226,11 @@ public abstract class AbstractMock {
 		Assertions.assertEquals("test", psp.getIdPsp());
 		Assertions.assertEquals("test", payer.getFullName());
 		Assertions.assertEquals("123", info.getAmount());
-		return pr.toString();
+		return pr;
+	}
+
+	protected String getPaymentRoot() {
+		return getPaymentRootObject().toString();
 	}
 
 	protected Payment getTestReminder() {

@@ -57,17 +57,14 @@ public class PaymentServiceImpl implements PaymentService {
 	private String proxyEndpointKey;
 
 	@Autowired
-	PaymentProducer producer;
-	
+	PaymentProducer producer;	
 	@Autowired
 	DefaultApi defaultApi;
 	
 	@Autowired
-	ApiClient apiClient;
-	
-	@Autowired
 	@Qualifier("kafkaTemplatePayments")
 	private KafkaTemplate<String, String> kafkaTemplatePayments;
+	
 
 	private static String isPaid = "isPaid";
 
@@ -81,45 +78,42 @@ public class PaymentServiceImpl implements PaymentService {
 	public void save(Payment reminder) {
 		paymentRepository.save(reminder);
 		log.info("Saved payment id: {}", reminder.getId());
-	}
+	} 
 
 	@Override
-	public Map<String, String> checkPayment(String rptId) throws JsonProcessingException, InterruptedException, ExecutionException {
+	public Map<String, String> checkPayment(Payment payment) throws JsonProcessingException, InterruptedException, ExecutionException {
 		Map<String, String> map = new HashMap<>();
 		map.put(isPaid, "false");
-		try {
+		try {			
+			ApiClient apiClient = new ApiClient();
 			if (enableRestKey) {
 				apiClient.setApiKey(proxyEndpointKey);
 			}
 			apiClient.setBasePath(urlProxy);
-
+			
 			defaultApi.setApiClient(apiClient);	
-			PaymentRequestsGetResponse resp = defaultApi.getPaymentInfo(rptId, Constants.X_CLIENT_ID);	
+			PaymentRequestsGetResponse resp = defaultApi.getPaymentInfo(payment.getRptId(), Constants.X_CLIENT_ID);	
 			map.put("dueDate", resp.getDueDate());
 
 			return map;
-			
+
+
 		} catch (HttpServerErrorException errorException) {
 			// the reminder is already paid
-			ProxyPaymentResponse res = mapper.readValue(errorException.getResponseBodyAsString(),
-					ProxyPaymentResponse.class);
+			ProxyPaymentResponse res = mapper.readValue(errorException.getResponseBodyAsString(), ProxyPaymentResponse.class);
 			if (res.getDetail_v2().equals("PPT_RPT_DUPLICATA")
 					&& errorException.getStatusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
-				Payment reminder = paymentRepository.getPaymentByRptId(rptId);
-				if (Objects.nonNull(reminder)) {
-					reminder.setPaidFlag(true);
-					reminder.setPaidDate(LocalDateTime.now());
-					paymentRepository.save(reminder);
+					payment.setPaidFlag(true);
+					payment.setPaidDate(LocalDateTime.now());
 					PaymentMessage message = new PaymentMessage();
-					message.setNoticeNumber(reminder.getContent_paymentData_noticeNumber());
-					message.setPayeeFiscalCode(reminder.getContent_paymentData_payeeFiscalCode());
+					message.setNoticeNumber(payment.getContent_paymentData_noticeNumber());
+					message.setPayeeFiscalCode(payment.getContent_paymentData_payeeFiscalCode());
 					message.setSource("payments");
-					
-					
+								
 					if(StringUtils.isNotEmpty(res.getDuedate())) {
 						LocalDate localDateDueDate = LocalDate.parse(res.getDuedate());
 					
-						long longDueDate = reminder.getDueDate() != null ? reminder.getDueDate().longValue() : 0L;
+						long longDueDate = payment.getDueDate() != null ? payment.getDueDate().longValue() : 0L;
 						LocalDate reminderDueDate = LocalDateTime.ofInstant(Instant.ofEpochSecond(longDueDate),
 	                               TimeZone.getDefault().toZoneId()).toLocalDate();
 						
@@ -127,11 +121,10 @@ public class PaymentServiceImpl implements PaymentService {
 							message.setDueDate(localDateDueDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli());
 						}
 					}
-
-					producer.sendReminder(mapper.writeValueAsString(message), kafkaTemplatePayments, topic);
+					producer.sendPaymentUpdate(mapper.writeValueAsString(message), kafkaTemplatePayments, topic);
 					map.put(isPaid, "true");
 					map.put("dueDate", res.getDuedate());
-				}
+				
 				return map;
 			} else {
 				throw errorException;
