@@ -1,6 +1,5 @@
 package it.gov.pagopa.paymentupdater.consumer;
 
-
 import java.lang.reflect.UndeclaredThrowableException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -36,18 +35,18 @@ import lombok.extern.slf4j.Slf4j;
 public class PaymentKafkaConsumer {
 
 	@Autowired
-	PaymentService paymentService;	
+	PaymentService paymentService;
 	@Autowired
-	PaymentRetryService paymentRetryService;	
+	PaymentRetryService paymentRetryService;
 	@Autowired
 	@Qualifier("kafkaTemplatePayments")
-	private KafkaTemplate<String, String> kafkaTemplatePayments;	
+	private KafkaTemplate<String, String> kafkaTemplatePayments;
 	@Autowired
-	PaymentProducer producer;	
+	PaymentProducer producer;
 	@Autowired
-	ObjectMapper mapper;	
+	ObjectMapper mapper;
 	@Value("${kafka.paymentupdates}")
-	private String producerTopic;	
+	private String producerTopic;
 	@Value("${interval.function}")
 	private int intervalFunction;
 	@Value("${attempts.max}")
@@ -57,26 +56,26 @@ public class PaymentKafkaConsumer {
 
 	@KafkaListener(topics = "${kafka.payment}", groupId = "consumer-Payment", containerFactory = "kafkaListenerContainerFactoryPaymentRoot", autoStartup = "${payment.auto.start}")
 	public void paymentKafkaListener(PaymentRoot root) throws JsonProcessingException {
-		log.info("start consumer-Payment");
-		if (Objects.nonNull(root) && Objects.nonNull(root.getDebtorPosition()) && Objects.nonNull(root.getDebtorPosition().getNoticeNumber()) 
+		if (Objects.nonNull(root) && Objects.nonNull(root.getDebtorPosition())
+				&& Objects.nonNull(root.getDebtorPosition().getNoticeNumber())
 				&& Objects.nonNull(root.getCreditor()) && Objects.nonNull(root.getCreditor().getIdPA())) {
 			PaymentMessage message = new PaymentMessage();
 			message.setSource("payments");
 			message.setNoticeNumber(root.getDebtorPosition().getNoticeNumber());
 			message.setPayeeFiscalCode(root.getCreditor().getIdPA());
 			message.setPaid(true);
-	
-			var maybeReminderToSend = paymentService.getPaymentByNoticeNumberAndFiscalCode(message.getNoticeNumber(),
+
+			var maybePaymentToSend = paymentService.getPaymentByNoticeNumberAndFiscalCode(message.getNoticeNumber(),
 					message.getPayeeFiscalCode());
-			if (maybeReminderToSend.isPresent()) {
-				var reminderToSend = maybeReminderToSend.get();
-				reminderToSend.setPaidFlag(true);
-				reminderToSend.setPaidDate(LocalDateTime.now());
-				paymentService.save(reminderToSend); 
-	
-				message.setFiscalCode(reminderToSend.getFiscalCode());
-				message.setMessageId(reminderToSend.getId());
-	
+			if (maybePaymentToSend.isPresent()) {
+				var paymentToSend = maybePaymentToSend.get();
+				paymentToSend.setPaidFlag(true);
+				paymentToSend.setPaidDate(LocalDateTime.now());
+				paymentService.save(paymentToSend);
+
+				message.setFiscalCode(paymentToSend.getFiscalCode());
+				message.setMessageId(paymentToSend.getId());
+
 				sendPaymentUpdateWithRetry(mapper.writeValueAsString(message));
 			} else {
 				log.info("Not found reminder in payment data");
@@ -84,18 +83,18 @@ public class PaymentKafkaConsumer {
 		}
 		this.latch.countDown();
 	}
-	
+
 	private void sendPaymentUpdateWithRetry(String message) {
 		IntervalFunction intervalFn = IntervalFunction.of(intervalFunction);
 		RetryConfig retryConfig = RetryConfig.custom()
-				.maxAttempts(attemptsMax)			
+				.maxAttempts(attemptsMax)
 				.intervalFunction(intervalFn)
 				.build();
 		Retry retry = Retry.of("sendNotificationWithRetry", retryConfig);
-		Function<Object, String> sendReminderFn = Retry.decorateFunction(retry, 
+		Function<Object, String> sendPaymentUpdateFn = Retry.decorateFunction(retry,
 				notObj -> {
-					try {				
-						return producer.sendReminder(message, kafkaTemplatePayments, producerTopic);
+					try {
+						return producer.sendPaymentUpdate(message, kafkaTemplatePayments, producerTopic);
 					} catch (Exception e) {
 						throw new UndeclaredThrowableException(e);
 					}
@@ -103,19 +102,21 @@ public class PaymentKafkaConsumer {
 		Retry.EventPublisher publisher = retry.getEventPublisher();
 		publisher.onError(event -> {
 			if (event.getNumberOfRetryAttempts() == attemptsMax) {
-				//when max attempts are reached
+				// when max attempts are reached
 				PaymentRetry retryMessage = messageToRetry(message);
-				List<PaymentRetry> paymentList = paymentRetryService.getPaymentRetryByNoticeNumberAndFiscalCode(retryMessage.getNoticeNumber(), retryMessage.getPayeeFiscalCode());
+				List<PaymentRetry> paymentList = paymentRetryService.getPaymentRetryByNoticeNumberAndFiscalCode(
+						retryMessage.getNoticeNumber(), retryMessage.getPayeeFiscalCode());
 				if (Objects.nonNull(retryMessage) && paymentList.isEmpty()) {
 					retryMessage.setInsertionDate(LocalDateTime.now());
 					paymentRetryService.save(retryMessage);
-					TelemetryCustomEvent.writeTelemetry("ErrorSendPaymentUpdate", new HashMap<>(), getErrorMap(retryMessage, event));
-				}								
+					TelemetryCustomEvent.writeTelemetry("ErrorSendPaymentUpdate", new HashMap<>(),
+							getErrorMap(retryMessage, event));
+				}
 			}
 		});
-		sendReminderFn.apply(message);
+		sendPaymentUpdateFn.apply(message);
 	}
-	
+
 	private PaymentRetry messageToRetry(String message) {
 		try {
 			return mapper.readValue(message, PaymentRetry.class);
@@ -124,15 +125,15 @@ public class PaymentKafkaConsumer {
 		}
 		return null;
 	}
-	
-	private Map<String, String> getErrorMap(PaymentRetry message, RetryOnErrorEvent event ) {
+
+	private Map<String, String> getErrorMap(PaymentRetry message, RetryOnErrorEvent event) {
 		Map<String, String> properties = new HashMap<>();
 		properties.put(message.getNoticeNumber(), " Call failed after maximum number of attempts");
 		properties.put("time", event.getCreationTime().toString());
-		if (Objects.nonNull(event.getLastThrowable().getMessage())) 
-				properties.put("message", event.getLastThrowable().getMessage());
-		if (Objects.nonNull(event.getLastThrowable().getCause())) 
-				properties.put("cause", event.getLastThrowable().getCause().toString());		
+		if (Objects.nonNull(event.getLastThrowable().getMessage()))
+			properties.put("message", event.getLastThrowable().getMessage());
+		if (Objects.nonNull(event.getLastThrowable().getCause()))
+			properties.put("cause", event.getLastThrowable().getCause().toString());
 		return properties;
 	}
 
