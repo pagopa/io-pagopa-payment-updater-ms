@@ -33,7 +33,7 @@ import it.gov.pagopa.paymentupdater.model.PaymentRetry;
 import it.gov.pagopa.paymentupdater.repository.PaymentRepository;
 
 public abstract class AbstractMock {
-	
+
 	@Autowired
 	ObjectMapper mapper;
 
@@ -75,7 +75,8 @@ public abstract class AbstractMock {
 	}
 
 	protected String selectPaymentMessageObject(String type, String messageId, String noticeNumber,
-			String payeeFiscalCode, boolean paid, LocalDate dueDate, double amount, String source, String fiscalCode) throws JsonProcessingException {
+			String payeeFiscalCode, boolean paid, LocalDate dueDate, double amount, String source, String fiscalCode)
+			throws JsonProcessingException {
 		PaymentMessage paymentMessage = null;
 		paymentMessage = new PaymentMessage(messageId, noticeNumber, payeeFiscalCode, paid, dueDate, amount, source,
 				fiscalCode);
@@ -94,7 +95,7 @@ public abstract class AbstractMock {
 		paymentResponse.setTitle("");
 		return paymentResponse;
 	}
-	
+
 	protected PaymentRetry getPaymentRetry() {
 		PaymentRetry retry = new PaymentRetry();
 		retry.setAmount(0);
@@ -114,7 +115,7 @@ public abstract class AbstractMock {
 		return retry;
 	}
 
-	protected String getPaymentRoot() {
+	protected PaymentRoot getPaymentRootObject() {
 		PaymentRoot pr = new PaymentRoot();
 		Creditor creditor = new Creditor();
 		DebtorPosition debtorPosition = new DebtorPosition();
@@ -173,7 +174,11 @@ public abstract class AbstractMock {
 		Assertions.assertEquals("test", psp.getIdPsp());
 		Assertions.assertEquals("test", payer.getFullName());
 		Assertions.assertEquals("123", info.getAmount());
-		return pr.toString();
+		return pr;
+	}
+
+	protected String getPaymentRoot() {
+		return getPaymentRootObject().toString();
 	}
 
 	protected Payment getTestReminder() {

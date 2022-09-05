@@ -1,16 +1,13 @@
 package it.gov.pagopa.paymentupdater.deserialize;
 
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Objects;
-
 import org.apache.kafka.common.serialization.Deserializer;
+import org.springframework.kafka.support.serializer.DeserializationException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.gov.pagopa.paymentupdater.dto.payments.PaymentRoot;
-import it.gov.pagopa.paymentupdater.util.PaymentUtil;
-import it.gov.pagopa.paymentupdater.util.TelemetryCustomEvent;
+import it.gov.pagopa.paymentupdater.exception.SkipDataException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -23,32 +20,22 @@ public class PaymentRootDeserializer implements Deserializer<PaymentRoot> {
 	}
 
 	@Override
-	public  PaymentRoot deserialize(String s, byte[] bytes) {
+	public PaymentRoot deserialize(String s, byte[] bytes) {
 		PaymentRoot paymentRoot = null;
 		try {
 			paymentRoot = mapper.readValue(bytes, PaymentRoot.class);
 		} catch (Exception e) {
-			log.error("Error in deserializing the PaymentRoot for consumer payment-updates");
-			log.error(e.getMessage());
-		}	
-		if (Objects.isNull(paymentRoot) || Objects.isNull(paymentRoot.getDebtorPosition()) || Objects.isNull(paymentRoot.getCreditor())) {
-			handleErrorPaymentMessage(bytes);
-			paymentRoot = null;
+			log.error("Error in deserializing the PaymentRoot for consumer payment-updates|ERROR=" + e.getMessage());
+			throw new DeserializationException(
+					"Error in deserializing the PaymentRoot for consumer payment-updates|ERROR=" + e.getMessage(),
+					bytes, false, e);
+		}
+
+		if (Objects.isNull(paymentRoot) || Objects.isNull(paymentRoot.getDebtorPosition())
+				|| Objects.isNull(paymentRoot.getCreditor())) {
+			throw new SkipDataException("Skip Data that not satisfies constraints", paymentRoot);
 		}
 		return paymentRoot;
 	}
-	
-	
-	private void handleErrorPaymentMessage(byte[] bytes) {
-		try {
-			String message = new String(bytes, StandardCharsets.UTF_8);
-			log.error("The error paymentMessage: {}", message);
-			TelemetryCustomEvent.writeTelemetry("ErrorDeserializingPayment", new HashMap<>(), PaymentUtil.getErrorMap(message));
-		} catch (Exception e1) {
-			log.error(e1.getMessage());
-		}
-	}
-	
-	
 
 }
