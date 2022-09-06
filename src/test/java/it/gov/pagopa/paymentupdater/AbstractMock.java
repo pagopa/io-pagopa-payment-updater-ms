@@ -122,13 +122,13 @@ public abstract class AbstractMock {
 		returnReminder1.setContent_type(MessageContentType.valueOf(contentType));
 		returnReminder1.setFiscalCode(fiscalCode);
 		returnReminder1.setRptId(rptId);
-		returnReminder1.setDueDate(1652572800L);
+		returnReminder1.setDueDate(LocalDateTime.now());
 		returnReminder1.setContent_paymentData_noticeNumber(paymentDataNoticeNumber);
 		returnReminder1.setContent_paymentData_payeeFiscalCode(paymentDataFiscalCode);
 		return returnReminder1;
 	}
 
-	protected String selectPaymentMessageObject(String type, String messageId, String noticeNumber,	String payeeFiscalCode, boolean paid, Long dueDate, double amount, String source, String fiscalCode)throws JsonProcessingException {
+	protected String selectPaymentMessageObject(String type, String messageId, String noticeNumber,	String payeeFiscalCode, boolean paid, LocalDateTime dueDate, double amount, String source, String fiscalCode)throws JsonProcessingException {
 		PaymentMessage paymentMessage = null;
 		paymentMessage = new PaymentMessage(messageId, noticeNumber, payeeFiscalCode, paid, dueDate, amount, source,
 				fiscalCode);

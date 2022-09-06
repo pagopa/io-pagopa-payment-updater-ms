@@ -1,15 +1,12 @@
 package it.gov.pagopa.paymentupdater.util;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
+import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TimeZone;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -54,15 +51,16 @@ public class PaymentUtil {
 		if(StringUtils.isNotEmpty(proxyDueDate)) {
 			LocalDate localDateProxyDueDate = LocalDate.parse(proxyDueDate);
 
-			long longDueDate = reminder.getDueDate() != null ? reminder.getDueDate().longValue() : 0L;
-			LocalDate reminderDueDate = LocalDateTime.ofInstant(Instant.ofEpochSecond(longDueDate),
-                    TimeZone.getDefault().toZoneId()).toLocalDate();
+			LocalDate reminderDueDate = reminder.getDueDate() != null ? reminder.getDueDate().toLocalDate() : null;
 
 			if(!localDateProxyDueDate.equals(reminderDueDate)) {
-				long millis = localDateProxyDueDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli();
-				reminder.setDueDate(millis);
+				reminder.setDueDate(getLocalDateTime(localDateProxyDueDate));
 			}
 		} 
+	}
+	
+	public static LocalDateTime getLocalDateTime(LocalDate date) {
+		return LocalDateTime.of(date, LocalTime.of(12,0));
 	}
 
 

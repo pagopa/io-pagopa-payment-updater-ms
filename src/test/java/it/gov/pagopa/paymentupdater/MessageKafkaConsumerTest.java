@@ -1,6 +1,7 @@
 package it.gov.pagopa.paymentupdater;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.concurrent.ExecutionException;
 
@@ -58,7 +59,7 @@ public class MessageKafkaConsumerTest extends AbstractMock{
 	@Test
     public void test_producerKafka_Ok() throws JsonProcessingException, InterruptedException, ExecutionException {
     	kafkaTemplate = new KafkaTemplate<>((ProducerFactory<String, String>) ApplicationContextProvider.getBean("producerFactory"));
-    	producer.sendPaymentUpdate(selectPaymentMessageObject("1231", "", "2121", "AAABBB77Y66A444A", false, LocalDate.now().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(), 0.0, "test", "BBBPPP77J99A888A"), kafkaTemplate, "payment-updates");
+    	producer.sendPaymentUpdate(selectPaymentMessageObject("1231", "", "2121", "AAABBB77Y66A444A", false, LocalDateTime.now(), 0.0, "test", "BBBPPP77J99A888A"), kafkaTemplate, "payment-updates");
     	Assertions.assertTrue(true);
     }
     

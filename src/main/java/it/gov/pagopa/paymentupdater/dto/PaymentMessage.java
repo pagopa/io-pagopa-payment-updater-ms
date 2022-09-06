@@ -1,5 +1,7 @@
 package it.gov.pagopa.paymentupdater.dto;
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,7 +17,7 @@ public class PaymentMessage {
 	String noticeNumber;
 	String payeeFiscalCode;
 	boolean paid;
-	Long dueDate;
+	LocalDateTime dueDate;
 	double amount;
 	String source;
 	String fiscalCode;

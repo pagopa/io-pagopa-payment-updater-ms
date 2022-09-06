@@ -1,14 +1,10 @@
 package it.gov.pagopa.paymentupdater.service;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.TimeZone;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +30,7 @@ import it.gov.pagopa.paymentupdater.restclient.proxy.ApiClient;
 import it.gov.pagopa.paymentupdater.restclient.proxy.api.DefaultApi;
 import it.gov.pagopa.paymentupdater.restclient.proxy.model.PaymentRequestsGetResponse;
 import it.gov.pagopa.paymentupdater.util.Constants;
+import it.gov.pagopa.paymentupdater.util.PaymentUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -112,13 +109,11 @@ public class PaymentServiceImpl implements PaymentService {
 								
 					if(StringUtils.isNotEmpty(res.getDuedate())) {
 						LocalDate localDateDueDate = LocalDate.parse(res.getDuedate());
-					
-						long longDueDate = payment.getDueDate() != null ? payment.getDueDate().longValue() : 0L;
-						LocalDate reminderDueDate = LocalDateTime.ofInstant(Instant.ofEpochSecond(longDueDate),
-	                               TimeZone.getDefault().toZoneId()).toLocalDate();
+				
+						LocalDate reminderDueDate = payment.getDueDate() != null ? payment.getDueDate().toLocalDate() : null;
 						
 						if(!localDateDueDate.equals(reminderDueDate)) {
-							message.setDueDate(localDateDueDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli());
+							message.setDueDate(PaymentUtil.getLocalDateTime(localDateDueDate));
 						}
 					}
 					producer.sendPaymentUpdate(mapper.writeValueAsString(message), kafkaTemplatePayments, topic);
