@@ -10,39 +10,6 @@ tags:
   - name: API  Payment
     description: API  Payment
 paths:
-  /check/{rptId}:
-    get:
-      tags:
-        - API  Payment
-      summary: Check by rptId
-      operationId: checkProxy
-      parameters:
-        - name: rptId
-          in: path
-          required: true
-          schema:
-            type: string
-          description: concatenation between fiscalCode and noticeNumber
-      responses:
-        200:
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  isPaid:
-                    type: string
-                  dueDate:
-                    type: string
-          description: 'check if the message has been paid'
-        '400':
-          $ref: '#/components/responses/400BadRequest'
-        '401':
-          $ref: '#/components/responses/401Unauthorized'
-        '500':
-          $ref: '#/components/responses/500InternalServerError'
-        '503':
-          $ref: '#/components/responses/503ServiceUnavailable'
   /check/messages/{messageId}:
     get:
       tags:
