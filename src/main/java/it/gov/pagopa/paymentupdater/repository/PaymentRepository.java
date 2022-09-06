@@ -1,5 +1,6 @@
 package it.gov.pagopa.paymentupdater.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -15,5 +16,6 @@ public interface PaymentRepository extends MongoRepository<Payment, String> {
 	Optional<Payment> getPaymentByNoticeNumberAndFiscalCode(String noticeNumber, String fiscalCode);
 
 	@Query("{'rptId':?0}")
-	Payment getPaymentByRptId(String rptId);
+	List<Payment> getPaymentByRptId(String rptId);
+
 }

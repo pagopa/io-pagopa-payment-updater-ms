@@ -69,7 +69,6 @@ public class MessageKafkaConsumerTest extends AbstractMock{
 		Payment payment = new Payment();
 		mockGetPaymentByNoticeNumberAndFiscalCodeWithResponse(payment);
 		mockSaveWithResponse(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3, "ALSDKdcoekroicjre200", "ALSDKdcoek", "roicjre200"));
-		mockGetPaymentByNoticeNumber(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3, "ALSDKdcoekroicjre200", "ALSDKdcoek", "roicjre200"));
 		mockSaveWithResponse(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3, "ALSDKdcoekroicjre200", "ALSDKdcoek", "roicjre200"));
 		mockGetPaymentInfo();
 		messageKafkaConsumer.messageKafkaListener(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3,"ALSDKdcoekroicjre200", "ALSDKdcoek", "roicjre200"));

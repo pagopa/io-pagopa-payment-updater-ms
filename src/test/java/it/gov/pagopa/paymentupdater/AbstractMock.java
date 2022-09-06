@@ -95,9 +95,9 @@ public abstract class AbstractMock {
 		Mockito.when(mockPaymentRetryRepository.findTopElements(Mockito.any(Pageable.class))).thenReturn(retryList);
 	}
 
-	public void mockGetPaymentByNoticeNumber(Payment payment) {
-		Mockito.when(mockRepository.getPaymentByRptId(Mockito.anyString())).thenReturn(payment);
-	}
+//	public void mockGetPaymentByNoticeNumber(Payment payment) {
+//		Mockito.when(mockRepository.getPaymentByRptId(Mockito.anyString())).thenReturn(payment);
+//	}
 
 	public void mockGetPaymentInfo() {
 		PaymentRequestsGetResponse paymentRequest = new PaymentRequestsGetResponse();

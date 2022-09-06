@@ -52,7 +52,6 @@ public class MockControllerTest extends AbstractMock {
 
 	@Test
 	public void test_checkAssistenzaIsPaidTrue() throws Exception {
-		mockGetPaymentByNoticeNumber(getTestReminder());
 		mockSaveWithResponse(getTestReminder());
 		HttpServerErrorException errorResponse = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "",
 				mapper.writeValueAsString(getProxyResponse()).getBytes(), Charset.defaultCharset());

@@ -1,5 +1,6 @@
 package it.gov.pagopa.paymentupdater.service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -17,5 +18,7 @@ public interface PaymentService {
 	Map<String, String> checkPayment(Payment payment) throws JsonProcessingException, InterruptedException, ExecutionException;
 
 	Optional<Payment> findById(String messageId);
+	
+	List<Payment> getPaymentsByRptid(String rptid);
 
 }

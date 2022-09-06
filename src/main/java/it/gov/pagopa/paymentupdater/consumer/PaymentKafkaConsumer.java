@@ -24,6 +24,7 @@ import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.retry.event.RetryOnErrorEvent;
 import it.gov.pagopa.paymentupdater.dto.PaymentMessage;
 import it.gov.pagopa.paymentupdater.dto.payments.PaymentRoot;
+import it.gov.pagopa.paymentupdater.model.Payment;
 import it.gov.pagopa.paymentupdater.model.PaymentRetry;
 import it.gov.pagopa.paymentupdater.producer.PaymentProducer;
 import it.gov.pagopa.paymentupdater.service.PaymentRetryService;
@@ -57,27 +58,23 @@ public class PaymentKafkaConsumer {
 	@KafkaListener(topics = "${kafka.payment}", groupId = "consumer-Payment", containerFactory = "kafkaListenerContainerFactoryPaymentRoot", autoStartup = "${payment.auto.start}")
 	public void paymentKafkaListener(PaymentRoot root) throws JsonProcessingException {
 		if (Objects.nonNull(root) && Objects.nonNull(root.getDebtorPosition())
-				&& Objects.nonNull(root.getDebtorPosition().getNoticeNumber())
-				&& Objects.nonNull(root.getCreditor()) && Objects.nonNull(root.getCreditor().getIdPA())) {
+				&& Objects.nonNull(root.getDebtorPosition().getNoticeNumber()) && Objects.nonNull(root.getCreditor())
+				&& Objects.nonNull(root.getCreditor().getIdPA())) {
 			PaymentMessage message = new PaymentMessage();
 			message.setSource("payments");
 			message.setNoticeNumber(root.getDebtorPosition().getNoticeNumber());
 			message.setPayeeFiscalCode(root.getCreditor().getIdPA());
 			message.setPaid(true);
-
-			var maybePaymentToSend = paymentService.getPaymentByNoticeNumberAndFiscalCode(message.getNoticeNumber(),
-					message.getPayeeFiscalCode());
-			if (maybePaymentToSend.isPresent()) {
-				var paymentToSend = maybePaymentToSend.get();
+			List<Payment> payments = paymentService.getPaymentsByRptid(message.getPayeeFiscalCode().concat(message.getNoticeNumber()));
+			payments.stream().forEach(paymentToSend -> {				
 				paymentToSend.setPaidFlag(true);
 				paymentToSend.setPaidDate(LocalDateTime.now());
 				paymentService.save(paymentToSend);
-
-				message.setFiscalCode(paymentToSend.getFiscalCode());
-				message.setMessageId(paymentToSend.getId());
-
+			});		
+			if (!payments.isEmpty()) {
 				sendPaymentUpdateWithRetry(mapper.writeValueAsString(message));
-			} else {
+			}
+			else {
 				log.info("Not found reminder in payment data");
 			}
 		}
@@ -86,19 +83,15 @@ public class PaymentKafkaConsumer {
 
 	private void sendPaymentUpdateWithRetry(String message) {
 		IntervalFunction intervalFn = IntervalFunction.of(intervalFunction);
-		RetryConfig retryConfig = RetryConfig.custom()
-				.maxAttempts(attemptsMax)
-				.intervalFunction(intervalFn)
-				.build();
+		RetryConfig retryConfig = RetryConfig.custom().maxAttempts(attemptsMax).intervalFunction(intervalFn).build();
 		Retry retry = Retry.of("sendNotificationWithRetry", retryConfig);
-		Function<Object, String> sendPaymentUpdateFn = Retry.decorateFunction(retry,
-				notObj -> {
-					try {
-						return producer.sendPaymentUpdate(message, kafkaTemplatePayments, producerTopic);
-					} catch (Exception e) {
-						throw new UndeclaredThrowableException(e);
-					}
-				});
+		Function<Object, String> sendPaymentUpdateFn = Retry.decorateFunction(retry, notObj -> {
+			try {
+				return producer.sendPaymentUpdate(message, kafkaTemplatePayments, producerTopic);
+			} catch (Exception e) {
+				throw new UndeclaredThrowableException(e);
+			}
+		});
 		Retry.EventPublisher publisher = retry.getEventPublisher();
 		publisher.onError(event -> {
 			if (event.getNumberOfRetryAttempts() == attemptsMax) {

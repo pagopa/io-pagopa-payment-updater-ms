@@ -1,13 +1,13 @@
 package it.gov.pagopa.paymentupdater.service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -105,17 +105,8 @@ public class PaymentServiceImpl implements PaymentService {
 					PaymentMessage message = new PaymentMessage();
 					message.setNoticeNumber(payment.getContent_paymentData_noticeNumber());
 					message.setPayeeFiscalCode(payment.getContent_paymentData_payeeFiscalCode());
-					message.setSource("payments");
-								
-					if(StringUtils.isNotEmpty(res.getDuedate())) {
-						LocalDate localDateDueDate = LocalDate.parse(res.getDuedate());
-				
-						LocalDate reminderDueDate = payment.getDueDate() != null ? payment.getDueDate().toLocalDate() : null;
-						
-						if(!localDateDueDate.equals(reminderDueDate)) {
-							message.setDueDate(PaymentUtil.getLocalDateTime(localDateDueDate));
-						}
-					}
+					message.setSource("payments");			
+					PaymentUtil.checkDueDateForPaymentMessage(res.getDuedate(), message);							
 					producer.sendPaymentUpdate(mapper.writeValueAsString(message), kafkaTemplatePayments, topic);
 					map.put(isPaid, "true");
 					map.put("dueDate", res.getDuedate());
@@ -130,6 +121,12 @@ public class PaymentServiceImpl implements PaymentService {
 	@Override
 	public Optional<Payment> findById(String messageId) {
 		return paymentRepository.findById(messageId);
+	}
+
+	@Override
+	public List<Payment> getPaymentsByRptid(String rptid) {
+		List<Payment> payments = paymentRepository.getPaymentByRptId(rptid);
+		return payments == null ? new ArrayList<>() : payments;
 	}
 
 }

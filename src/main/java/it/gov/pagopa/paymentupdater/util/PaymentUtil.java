@@ -10,6 +10,7 @@ import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 
+import it.gov.pagopa.paymentupdater.dto.PaymentMessage;
 import it.gov.pagopa.paymentupdater.model.Payment;
 
 public class PaymentUtil {
@@ -17,6 +18,9 @@ public class PaymentUtil {
 	private PaymentUtil() {}
 
 	private static final String UNDEFINED = "undefined";
+	
+	public static final String ISPAID = "isPaid";
+	public static final String DUEDATE = "dueDate";
 
 	public static void checkNullInMessage(Payment reminder) {
 		if (Objects.nonNull(reminder)) {
@@ -46,7 +50,7 @@ public class PaymentUtil {
 	}
 
 
-	public static void checkDueDate(String proxyDueDate, Payment reminder) {
+	public static void checkDueDateForPayment(String proxyDueDate, Payment reminder) {
 
 		if(StringUtils.isNotEmpty(proxyDueDate)) {
 			LocalDate localDateProxyDueDate = LocalDate.parse(proxyDueDate);
@@ -57,7 +61,20 @@ public class PaymentUtil {
 				reminder.setDueDate(getLocalDateTime(localDateProxyDueDate));
 			}
 		} 
-	}
+	} 
+	
+	public static void checkDueDateForPaymentMessage(String proxyDueDate, PaymentMessage message) {
+
+		if(StringUtils.isNotEmpty(proxyDueDate)) {
+			LocalDate localDateProxyDueDate = LocalDate.parse(proxyDueDate);
+
+			LocalDate reminderDueDate = message.getDueDate() != null ? message.getDueDate().toLocalDate() : null;
+
+			if(!localDateProxyDueDate.equals(reminderDueDate)) {
+				message.setDueDate(getLocalDateTime(localDateProxyDueDate));
+			}
+		} 
+	} 
 	
 	public static LocalDateTime getLocalDateTime(LocalDate date) {
 		return LocalDateTime.of(date, LocalTime.of(12,0));

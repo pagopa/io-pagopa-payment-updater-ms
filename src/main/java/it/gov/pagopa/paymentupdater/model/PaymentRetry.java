@@ -1,5 +1,6 @@
 package it.gov.pagopa.paymentupdater.model;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.Id;
@@ -24,6 +25,6 @@ public class PaymentRetry {
 	LocalDateTime insertionDate;
 	double amount;
 	String source;
-	Long dueDate;
+	LocalDate dueDate;
 
 }
