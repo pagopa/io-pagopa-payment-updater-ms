@@ -5,7 +5,6 @@ import static it.gov.pagopa.paymentupdater.util.PaymentUtil.checkNullInMessage;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -16,12 +15,11 @@ import org.springframework.kafka.annotation.KafkaListener;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import dto.MessageContentType;
+import it.gov.pagopa.paymentupdater.dto.ProxyResponse;
 import it.gov.pagopa.paymentupdater.model.Payment;
 import it.gov.pagopa.paymentupdater.service.PaymentService;
 import it.gov.pagopa.paymentupdater.service.PaymentServiceImpl;
 import it.gov.pagopa.paymentupdater.util.PaymentUtil;
-import static it.gov.pagopa.paymentupdater.util.PaymentUtil.ISPAID;
-import static it.gov.pagopa.paymentupdater.util.PaymentUtil.DUEDATE;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -47,24 +45,18 @@ public class MessageKafkaConsumer {
 
 			String rptId = paymentMessage.getContent_paymentData_payeeFiscalCode().concat(paymentMessage.getContent_paymentData_noticeNumber());
 			paymentMessage.setRptId(rptId);
-			Map<String, String> map = paymentServiceImpl.checkPayment(paymentMessage);
-			if (map.containsKey(ISPAID) && Boolean.parseBoolean(map.get(ISPAID))) {
+			ProxyResponse proxyResponse = paymentServiceImpl.checkPayment(paymentMessage);
+			if (proxyResponse.isPaid()) {
 				//check if there are other payments with the same rptid
 					List<Payment> payments = paymentService.getPaymentsByRptid(rptId);
 					payments.stream().filter(payment -> !payment.getId().equals(paymentMessage.getId())).forEach(p -> {
 						p.setPaidFlag(true);
 						p.setPaidDate(LocalDateTime.now());
-						if (map.containsKey(DUEDATE)) {
-							String dueDate = map.get(DUEDATE);
-							PaymentUtil.checkDueDateForPayment(dueDate, p);
-						}
+						PaymentUtil.checkDueDateForPayment(proxyResponse.getDueDate(), p);		
 						paymentService.save(p);
-					});			
+					});	 		
 			}
-			if (map.containsKey(DUEDATE)) {
-				String dueDate = map.get(DUEDATE);
-				PaymentUtil.checkDueDateForPayment(dueDate, paymentMessage);
-			}
+			PaymentUtil.checkDueDateForPayment(proxyResponse.getDueDate() , paymentMessage);			
 			paymentService.save(paymentMessage);
 
 		}

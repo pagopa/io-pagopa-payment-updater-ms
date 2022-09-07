@@ -1,10 +1,9 @@
 package it.gov.pagopa.paymentupdater.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
@@ -22,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.gov.pagopa.paymentupdater.dto.PaymentMessage;
+import it.gov.pagopa.paymentupdater.dto.ProxyResponse;
 import it.gov.pagopa.paymentupdater.dto.request.ProxyPaymentResponse;
 import it.gov.pagopa.paymentupdater.model.Payment;
 import it.gov.pagopa.paymentupdater.producer.PaymentProducer;
@@ -61,9 +61,6 @@ public class PaymentServiceImpl implements PaymentService {
 	@Autowired
 	@Qualifier("kafkaTemplatePayments")
 	private KafkaTemplate<String, String> kafkaTemplatePayments;
-	
-
-	private static String isPaid = "isPaid";
 
 	@Override
 	public Optional<Payment> getPaymentByNoticeNumberAndFiscalCode(String noticeNumber, String fiscalCode) {
@@ -78,24 +75,26 @@ public class PaymentServiceImpl implements PaymentService {
 	} 
 
 	@Override
-	public Map<String, String> checkPayment(Payment payment) throws JsonProcessingException, InterruptedException, ExecutionException {
-		Map<String, String> map = new HashMap<>();
-		map.put(isPaid, "false");
-		try {			
+	public ProxyResponse checkPayment(Payment payment) throws JsonProcessingException, InterruptedException, ExecutionException {
+		ProxyResponse proxyResp = new ProxyResponse();
+		try {
 			ApiClient apiClient = new ApiClient();
 			if (enableRestKey) {
-				apiClient.addDefaultHeader("Ocp-Apim-Subscription-Key", proxyEndpointKey);
+				apiClient.setApiKey(proxyEndpointKey);
 			}
 			apiClient.setBasePath(urlProxy);
-			
-			defaultApi.setApiClient(apiClient);	
-			PaymentRequestsGetResponse resp = defaultApi.getPaymentInfo(payment.getRptId(), Constants.X_CLIENT_ID);	
-			map.put("dueDate", resp.getDueDate());
 
-			return map;
+			defaultApi.setApiClient(apiClient);		
+			PaymentRequestsGetResponse resp = defaultApi.getPaymentInfo(payment.getRptId(), Constants.X_CLIENT_ID);
 
+			LocalDate dueDate = PaymentUtil.getLocalDateFromString(resp.getDueDate());	
+			proxyResp.setDueDate(dueDate);
 
-		} catch (HttpServerErrorException errorException) {
+			return proxyResp;
+
+		}
+		
+		catch (HttpServerErrorException errorException) {
 			// the reminder is already paid
 			ProxyPaymentResponse res = mapper.readValue(errorException.getResponseBodyAsString(), ProxyPaymentResponse.class);
 			if (res.getDetail_v2().equals("PPT_RPT_DUPLICATA")
@@ -108,10 +107,9 @@ public class PaymentServiceImpl implements PaymentService {
 					message.setSource("payments");			
 					PaymentUtil.checkDueDateForPaymentMessage(res.getDuedate(), message);							
 					producer.sendPaymentUpdate(mapper.writeValueAsString(message), kafkaTemplatePayments, topic);
-					map.put(isPaid, "true");
-					map.put("dueDate", res.getDuedate());
-				
-				return map;
+					proxyResp.setPaid(true);
+					proxyResp.setDueDate(PaymentUtil.getLocalDateFromString(res.getDuedate()));
+				return proxyResp;
 			} else {
 				throw errorException;
 			}
