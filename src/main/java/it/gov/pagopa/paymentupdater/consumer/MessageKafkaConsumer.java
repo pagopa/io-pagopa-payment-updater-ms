@@ -43,11 +43,13 @@ public class MessageKafkaConsumer {
 			checkNullInMessage(paymentMessage);
 			payload = paymentMessage.toString();
 
-			String rptId = paymentMessage.getContent_paymentData_payeeFiscalCode().concat(paymentMessage.getContent_paymentData_noticeNumber());
-			paymentMessage.setRptId(rptId);
-			ProxyResponse proxyResponse = paymentServiceImpl.checkPayment(paymentMessage);
-			if (proxyResponse.isPaid()) {
-				//check if there are other payments with the same rptid
+			if(paymentService.countFindById(paymentMessage.getId()) == 0) {
+
+				String rptId = paymentMessage.getContent_paymentData_payeeFiscalCode().concat(paymentMessage.getContent_paymentData_noticeNumber());
+				paymentMessage.setRptId(rptId);
+				ProxyResponse proxyResponse = paymentServiceImpl.checkPayment(paymentMessage);
+				if (proxyResponse.isPaid()) {
+					//check if there are other payments with the same rptid
 					List<Payment> payments = paymentService.getPaymentsByRptid(rptId);
 					payments.stream().filter(payment -> !payment.getId().equals(paymentMessage.getId())).forEach(p -> {
 						p.setPaidFlag(true);
@@ -55,10 +57,10 @@ public class MessageKafkaConsumer {
 						PaymentUtil.checkDueDateForPayment(proxyResponse.getDueDate(), p);		
 						paymentService.save(p);
 					});	 		
+				}
+				PaymentUtil.checkDueDateForPayment(proxyResponse.getDueDate() , paymentMessage);			
+				paymentService.save(paymentMessage);
 			}
-			PaymentUtil.checkDueDateForPayment(proxyResponse.getDueDate() , paymentMessage);			
-			paymentService.save(paymentMessage);
-
 		}
 
 		this.latch.countDown();

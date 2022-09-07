@@ -127,4 +127,9 @@ public class PaymentServiceImpl implements PaymentService {
 		return payments == null ? new ArrayList<>() : payments;
 	}
 
+	@Override
+	public int countFindById(String id) {
+		return paymentRepository.countFindById(id);
+	}
+
 }
