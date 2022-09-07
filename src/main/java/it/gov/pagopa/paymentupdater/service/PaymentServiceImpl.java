@@ -80,7 +80,7 @@ public class PaymentServiceImpl implements PaymentService {
 		try {
 			ApiClient apiClient = new ApiClient();
 			if (enableRestKey) {
-				apiClient.setApiKey(proxyEndpointKey);
+				apiClient.addDefaultHeader("Ocp-Apim-Subscription-Key", proxyEndpointKey);
 			}
 			apiClient.setBasePath(urlProxy);
 
