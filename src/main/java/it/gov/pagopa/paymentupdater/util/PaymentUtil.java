@@ -1,6 +1,8 @@
 package it.gov.pagopa.paymentupdater.util;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import it.gov.pagopa.paymentupdater.model.Payment;
 
 public class PaymentUtil {
-	
+
 	private PaymentUtil() {}
 
 	private static final String UNDEFINED = "undefined";
@@ -35,11 +37,31 @@ public class PaymentUtil {
 			}
 		}
 	}
-	
+
 	public static Map<String, String> getErrorMap(String message) {
 		Map<String, String> properties = new HashMap<>();
 		String creationTime = LocalDateTime.now().toString();
 		properties.put(creationTime, message);
 		return properties;
 	}
+
+
+	public static void checkDueDate(String proxyDueDate, Payment reminder) {
+
+		if(StringUtils.isNotEmpty(proxyDueDate)) {
+			LocalDate localDateProxyDueDate = LocalDate.parse(proxyDueDate);
+
+			LocalDate reminderDueDate = reminder.getDueDate() != null ? reminder.getDueDate().toLocalDate() : null;
+
+			if(!localDateProxyDueDate.equals(reminderDueDate)) {
+				reminder.setDueDate(getLocalDateTime(localDateProxyDueDate));
+			}
+		} 
+	}
+	
+	public static LocalDateTime getLocalDateTime(LocalDate date) {
+		return LocalDateTime.of(date, LocalTime.of(12,0));
+	}
+
+
 }

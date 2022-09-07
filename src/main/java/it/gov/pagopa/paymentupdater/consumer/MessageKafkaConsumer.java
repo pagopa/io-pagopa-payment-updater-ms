@@ -16,6 +16,7 @@ import dto.MessageContentType;
 import it.gov.pagopa.paymentupdater.model.Payment;
 import it.gov.pagopa.paymentupdater.service.PaymentService;
 import it.gov.pagopa.paymentupdater.service.PaymentServiceImpl;
+import it.gov.pagopa.paymentupdater.util.PaymentUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -31,24 +32,26 @@ public class MessageKafkaConsumer {
 	private String payload = null;
 
 	@KafkaListener(topics = "${kafka.message}", groupId = "consumer-message", containerFactory = "kafkaListenerContainerFactory", autoStartup = "${message.auto.start}")
-	public void messageKafkaListener(Payment paymentMessage)
-			throws JsonProcessingException, InterruptedException, ExecutionException {
+	public void messageKafkaListener(Payment paymentMessage) throws JsonProcessingException, InterruptedException, ExecutionException {
 		log.debug("Processing messageId=" + paymentMessage.getId() + " time=" + new Date().toString()
-				+ "paymentMessageContentType="
-				+ paymentMessage.getContent_type());
-		if (Objects.nonNull(paymentMessage.getContent_type())
-				&& paymentMessage.getContent_type().equals(MessageContentType.PAYMENT)) {
+				+ " paymentMessageContentType= " + paymentMessage.getContent_type());
+		if (Objects.nonNull(paymentMessage.getContent_type()) && paymentMessage.getContent_type().equals(MessageContentType.PAYMENT)) {
 			log.debug("Received message with id: {} ", paymentMessage.getId());
 			checkNullInMessage(paymentMessage);
 			payload = paymentMessage.toString();
-			var pp = paymentService.getPaymentByNoticeNumberAndFiscalCode(
-					paymentMessage.getContent_paymentData_noticeNumber(),
-					paymentMessage.getContent_paymentData_payeeFiscalCode());
+			var pp = paymentService.getPaymentByNoticeNumberAndFiscalCode(paymentMessage.getContent_paymentData_noticeNumber(),	paymentMessage.getContent_paymentData_payeeFiscalCode());
 			if (pp.isEmpty()) {
 				String rptId = paymentMessage.getContent_paymentData_payeeFiscalCode()
-						.concat(paymentMessage.getContent_paymentData_noticeNumber());
+                        .concat(paymentMessage.getContent_paymentData_noticeNumber());
 				paymentMessage.setRptId(rptId);
-				paymentServiceImpl.checkPayment(paymentMessage);
+				Map<String, String> map = paymentServiceImpl.checkPayment(paymentMessage);
+				if (map.containsKey("isPaid")) {
+					paymentMessage.setPaidFlag(Boolean.parseBoolean(map.get("isPaid")));
+				}
+				if (map.containsKey("dueDate")) {
+					String dueDate = map.get("dueDate");
+					PaymentUtil.checkDueDate(dueDate, paymentMessage);
+				}
 				paymentService.save(paymentMessage);
 			}
 		}

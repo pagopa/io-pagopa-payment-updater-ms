@@ -14,7 +14,7 @@ public interface PaymentService {
 
 	void save(Payment reminder);
 
-	Map<String, Boolean> checkPayment(Payment payment) throws JsonProcessingException, InterruptedException, ExecutionException;
+	Map<String, String> checkPayment(Payment payment) throws JsonProcessingException, InterruptedException, ExecutionException;
 
 	Optional<Payment> findById(String messageId);
 

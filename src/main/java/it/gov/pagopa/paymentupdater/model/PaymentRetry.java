@@ -24,5 +24,6 @@ public class PaymentRetry {
 	LocalDateTime insertionDate;
 	double amount;
 	String source;
+	Long dueDate;
 
 }

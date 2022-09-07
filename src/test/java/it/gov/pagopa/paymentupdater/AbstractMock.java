@@ -1,17 +1,26 @@
 package it.gov.pagopa.paymentupdater;
 
-import java.time.LocalDate;
+import static org.mockito.Mockito.doNothing;
+
+import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.Rule;
 import org.junit.jupiter.api.Assertions;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -31,6 +40,11 @@ import it.gov.pagopa.paymentupdater.dto.request.ProxyPaymentResponse;
 import it.gov.pagopa.paymentupdater.model.Payment;
 import it.gov.pagopa.paymentupdater.model.PaymentRetry;
 import it.gov.pagopa.paymentupdater.repository.PaymentRepository;
+import it.gov.pagopa.paymentupdater.repository.PaymentRetryRepository;
+import it.gov.pagopa.paymentupdater.restclient.proxy.api.DefaultApi;
+import it.gov.pagopa.paymentupdater.restclient.proxy.model.PaymentRequestsGetResponse;
+import it.gov.pagopa.paymentupdater.service.PaymentRetryServiceImpl;
+import it.gov.pagopa.paymentupdater.service.PaymentServiceImpl;
 
 public abstract class AbstractMock {
 
@@ -46,6 +60,18 @@ public abstract class AbstractMock {
 	@MockBean
 	protected PaymentRepository mockRepository;
 
+	@MockBean
+	protected PaymentRetryRepository mockPaymentRetryRepository;
+
+	@InjectMocks
+	PaymentRetryServiceImpl paymentRetryServiceImpl;
+
+	@Mock
+	PaymentServiceImpl paymentServiceImpl;
+
+	@MockBean
+	protected DefaultApi mockDefaultApi;
+
 	protected void mockSaveWithResponse(Payment returnReminder) {
 		Mockito.when(mockRepository.save(Mockito.any(Payment.class))).thenReturn(returnReminder);
 	}
@@ -55,28 +81,54 @@ public abstract class AbstractMock {
 	}
 
 	public void mockGetPaymentByNoticeNumberAndFiscalCodeWithResponse(Payment reminder) {
-		Mockito.when(mockRepository.getPaymentByNoticeNumberAndFiscalCode(Mockito.anyString(), Mockito.anyString()))
+		Mockito.when(paymentServiceImpl.getPaymentByNoticeNumberAndFiscalCode(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(Optional.of(reminder));
 	}
 
-	public void mockGetPaymentByNoticeNumber(Payment reminder) {
-		Mockito.when(mockRepository.getPaymentByRptId(Mockito.anyString())).thenReturn(reminder);
+	public void mockDelete(List<PaymentRetry> entity) {
+		for (PaymentRetry e : entity) {
+			doNothing().when(mockPaymentRetryRepository).delete(e);
+		}
+	}
+
+	public void mockFindTopElements(Page<PaymentRetry> retryList) {
+		Mockito.when(mockPaymentRetryRepository.findTopElements(Mockito.any(Pageable.class))).thenReturn(retryList);
+	}
+
+	public void mockGetPaymentByNoticeNumber(Payment payment) {
+		Mockito.when(mockRepository.getPaymentByRptId(Mockito.anyString())).thenReturn(payment);
+	}
+
+	public void mockGetPaymentInfo() {
+		PaymentRequestsGetResponse paymentRequest = new PaymentRequestsGetResponse();
+		paymentRequest.setDueDate("2022-05-15");
+		paymentRequest.setIbanAccredito("IT12345");
+		Mockito.when(mockDefaultApi.getPaymentInfo(Mockito.anyString(), Mockito.anyString()))
+				.thenReturn(paymentRequest);
+	}
+
+	public void mockGetPaymentInfoIsPaidTrue() throws JsonProcessingException {
+		HttpServerErrorException errorResponse = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "",
+				mapper.writeValueAsString(getProxyResponse()).getBytes(), Charset.defaultCharset());
+
+		Mockito.when(mockDefaultApi.getPaymentInfo(Mockito.anyString(), Mockito.anyString())).thenThrow(errorResponse);
 	}
 
 	protected Payment selectReminderMockObject(String type, String id, String contentType, String fiscalCode,
-			int numReminder) {
+			int numReminder, String rptId, String paymentDataNoticeNumber, String paymentDataFiscalCode) {
 		Payment returnReminder1 = null;
 		returnReminder1 = new Payment();
 		returnReminder1.setId(id);
 		returnReminder1.setContent_type(MessageContentType.valueOf(contentType));
 		returnReminder1.setFiscalCode(fiscalCode);
+		returnReminder1.setRptId(rptId);
+		returnReminder1.setDueDate(LocalDateTime.now());
+		returnReminder1.setContent_paymentData_noticeNumber(paymentDataNoticeNumber);
+		returnReminder1.setContent_paymentData_payeeFiscalCode(paymentDataFiscalCode);
 		return returnReminder1;
-
 	}
 
-	protected String selectPaymentMessageObject(String type, String messageId, String noticeNumber,
-			String payeeFiscalCode, boolean paid, LocalDate dueDate, double amount, String source, String fiscalCode)
-			throws JsonProcessingException {
+	protected String selectPaymentMessageObject(String type, String messageId, String noticeNumber,	String payeeFiscalCode, boolean paid, LocalDateTime dueDate, double amount, String source, String fiscalCode)throws JsonProcessingException {
 		PaymentMessage paymentMessage = null;
 		paymentMessage = new PaymentMessage(messageId, noticeNumber, payeeFiscalCode, paid, dueDate, amount, source,
 				fiscalCode);
