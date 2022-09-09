@@ -93,11 +93,6 @@ public abstract class AbstractMock {
 		Mockito.when(mockRepository.findById(Mockito.anyString())).thenReturn(Optional.of(returnReminder1));
 	}
 
-	public void mockGetPaymentByNoticeNumberAndFiscalCodeWithResponse(Payment reminder) {
-		Mockito.when(paymentServiceImpl.getPaymentByNoticeNumberAndFiscalCode(Mockito.anyString(), Mockito.anyString()))
-				.thenReturn(Optional.of(reminder));
-	}
-
 	public void mockDelete(List<PaymentRetry> entity) {
 		for (PaymentRetry e : entity) {
 			doNothing().when(mockPaymentRetryRepository).delete(e);

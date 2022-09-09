@@ -65,8 +65,6 @@ public class MessageKafkaConsumerTest extends AbstractMock {
 	@Test
 	public void test_messageEventKafkaConsumer_OK() throws Throwable {
 		messageKafkaConsumer = (MessageKafkaConsumer) ApplicationContextProvider.getBean("messageEventKafkaConsumer");
-		Payment payment = new Payment();
-		mockGetPaymentByNoticeNumberAndFiscalCodeWithResponse(payment);
 		mockSaveWithResponse(selectReminderMockObject("", "1", "PAYMENT", "AAABBB77Y66A444A", 3, "ALSDKdcoekroicjre200",
 				"ALSDKdcoek", "roicjre200"));
 		List<Payment> payments = new ArrayList<>();
@@ -75,7 +73,6 @@ public class MessageKafkaConsumerTest extends AbstractMock {
 		mockGetPaymentByRptId(payments);
 		mockSaveWithResponse(selectReminderMockObject("", "1", "PAYMENT", "AAABBB77Y66A444A", 3, "ALSDKdcoekroicjre200",
 				"ALSDKdcoek", "roicjre200"));
-		// TODO! mock del metodo getPaymentInfo
 		mockGetPaymentInfo();
 		messageKafkaConsumer.messageKafkaListener(selectReminderMockObject("", "1", "PAYMENT", "AAABBB77Y66A444A", 3,
 				"ALSDKdcoekroicjre200", "ALSDKdcoek", "roicjre200"));
@@ -93,7 +90,6 @@ public class MessageKafkaConsumerTest extends AbstractMock {
 			mockSaveWithResponse(payment);
 		}
 		mockGetPaymentInfoIsPaidTrue();
-		mockGetPaymentByNoticeNumberAndFiscalCodeWithResponse(payment);
 		mockSaveWithResponse(payment);
 		
 		List<Payment> payments = new ArrayList<>();

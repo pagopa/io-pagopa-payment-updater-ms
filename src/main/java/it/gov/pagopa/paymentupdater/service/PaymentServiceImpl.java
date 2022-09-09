@@ -62,11 +62,6 @@ public class PaymentServiceImpl implements PaymentService {
 	@Qualifier("kafkaTemplatePayments")
 	private KafkaTemplate<String, String> kafkaTemplatePayments;
 
-	@Override
-	public Optional<Payment> getPaymentByNoticeNumberAndFiscalCode(String noticeNumber, String fiscalCode) {
-
-		return paymentRepository.getPaymentByNoticeNumberAndFiscalCode(noticeNumber, fiscalCode);
-	}
 
 	@Override
 	public void save(Payment reminder) {

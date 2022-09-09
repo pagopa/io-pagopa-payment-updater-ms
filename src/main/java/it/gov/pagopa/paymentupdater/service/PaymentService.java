@@ -11,8 +11,6 @@ import it.gov.pagopa.paymentupdater.model.Payment;
 
 public interface PaymentService {
 
-	Optional<Payment> getPaymentByNoticeNumberAndFiscalCode(String noticeNumber, String fiscalCode);
-
 	void save(Payment reminder);
 
 	ProxyResponse checkPayment(Payment payment) throws JsonProcessingException, InterruptedException, ExecutionException;

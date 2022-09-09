@@ -2,7 +2,6 @@ package it.gov.pagopa.paymentupdater;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -55,7 +54,6 @@ public class PaymentKafkaConsumerTest extends AbstractMock{
 	@Test
 	public void test_paymentEventKafkaConsumer_GENERIC_OK() throws InterruptedException, JsonProcessingException {
 		paymentEventKafkaConsumer = (PaymentKafkaConsumer) ApplicationContextProvider.getBean("paymentEventKafkaConsumer");
-		mockGetPaymentByNoticeNumberAndFiscalCodeWithResponse(selectReminderMockObject("", "1","GENERIC","AAABBB77Y66A444A",3, "ALSDK54654asdA1234567890200", "ALSDK54654asd", "A1234567890200"));
 		mockSaveWithResponse(selectReminderMockObject("", "1","GENERIC","AAABBB77Y66A444A",3, "ALSDK54654asdA1234567890200", "ALSDK54654asd", "A1234567890200"));
 		
 		List<Payment> payments = new ArrayList<>();

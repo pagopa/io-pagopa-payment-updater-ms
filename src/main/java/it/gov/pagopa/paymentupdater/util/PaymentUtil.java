@@ -7,7 +7,6 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -53,7 +52,7 @@ public class PaymentUtil {
 
 	public static void checkDueDateForPayment(LocalDate proxyDueDate, Payment reminder) {
 		
-		LocalDate reminderDueDate = Optional.ofNullable(reminder.getDueDate().toLocalDate()).orElse(null);
+		LocalDate reminderDueDate = reminder.getDueDate() != null ? reminder.getDueDate().toLocalDate() : null;
 
 		if (proxyDueDate == null || !proxyDueDate.equals(reminderDueDate)) {
 			reminder.setDueDate(getLocalDateTime(proxyDueDate));
