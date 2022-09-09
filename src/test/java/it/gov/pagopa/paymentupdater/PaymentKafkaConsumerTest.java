@@ -2,6 +2,7 @@ package it.gov.pagopa.paymentupdater;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -22,10 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.gov.pagopa.paymentupdater.consumer.MessageKafkaConsumer;
 import it.gov.pagopa.paymentupdater.consumer.PaymentKafkaConsumer;
-import it.gov.pagopa.paymentupdater.dto.payments.Creditor;
-import it.gov.pagopa.paymentupdater.dto.payments.DebtorPosition;
-import it.gov.pagopa.paymentupdater.dto.payments.PaymentRoot;
 import it.gov.pagopa.paymentupdater.dto.payments.Transfer;
+import it.gov.pagopa.paymentupdater.model.Payment;
 import it.gov.pagopa.paymentupdater.producer.PaymentProducer;
 import it.gov.pagopa.paymentupdater.util.ApplicationContextProvider;
 
@@ -48,39 +47,31 @@ public class PaymentKafkaConsumerTest extends AbstractMock{
 
 	@Autowired
 	ObjectMapper mapper;
-
+	
+    
 	@Value("${kafka.paymentupdates}")
 	private String producerTopic;
 
 	@Test
 	public void test_paymentEventKafkaConsumer_GENERIC_OK() throws InterruptedException, JsonProcessingException {
 		paymentEventKafkaConsumer = (PaymentKafkaConsumer) ApplicationContextProvider.getBean("paymentEventKafkaConsumer");
-		mockGetPaymentByNoticeNumberAndFiscalCodeWithResponse(selectReminderMockObject("", "1","PAYMENT","AAABBB77Y66A444A",3, "ALSDK54654asdA1234567890200", "ALSDK54654asd", "A1234567890200"));
+		mockGetPaymentByNoticeNumberAndFiscalCodeWithResponse(selectReminderMockObject("", "1","GENERIC","AAABBB77Y66A444A",3, "ALSDK54654asdA1234567890200", "ALSDK54654asd", "A1234567890200"));
 		mockSaveWithResponse(selectReminderMockObject("", "1","GENERIC","AAABBB77Y66A444A",3, "ALSDK54654asdA1234567890200", "ALSDK54654asd", "A1234567890200"));
-		PaymentRoot root = new PaymentRoot();
-
-		List<Transfer> transferList = new ArrayList<Transfer>();
-		Transfer transfer = new Transfer();
-		transfer.setAmount("");
-		transfer.setCompanyName("");
-		transfer.setFiscalCodePA("");
-		transfer.setRemittanceInformation("");
-		transfer.setTransferCategory("");
+		
+		List<Payment> payments = new ArrayList<>();
+		payments.add(selectReminderMockObject("", "1", "GENERIC", "AAABBB77Y66A444A", 3, "ALSDKdcoekroicjre200",
+				"ALSDKdcoek", "roicjre200"));
+		mockGetPaymentByRptId(payments);
+		
+		Transfer transfer = getPaymentRoot().getTransferList().get(0);
 		String transferString = transfer.getAmount().concat(
-		transfer.getCompanyName().concat(
-		transfer.getFiscalCodePA().concat(
-		transfer.getRemittanceInformation().concat(transfer.getTransferCategory()))));
-		transferList.add(transfer);
-		DebtorPosition position = new DebtorPosition();
-		position.setNoticeNumber("123");
-		Creditor cred = new Creditor();
-		cred.setIdPA("123");
-		root.setDebtorPosition(position);
-		root.setCreditor(cred);
-		root.setTransferList(transferList);
-		paymentEventKafkaConsumer.paymentKafkaListener(root);
+				transfer.getCompanyName().concat(
+				transfer.getFiscalCodePA().concat(
+				transfer.getRemittanceInformation().concat(transfer.getTransferCategory()))));
+		paymentEventKafkaConsumer.paymentKafkaListener(getPaymentRoot());
 		Assertions.assertNotNull(transferString);
 		Assertions.assertEquals(0L, paymentEventKafkaConsumer.getLatch().getCount());
 	}
+
 }
 

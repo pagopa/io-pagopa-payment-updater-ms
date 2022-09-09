@@ -16,6 +16,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import dto.FeatureLevelType;
 import dto.MessageContentType;
+import dto.message;
 import it.gov.pagopa.paymentupdater.dto.PaymentMessage;
 import it.gov.pagopa.paymentupdater.dto.payments.Creditor;
 import it.gov.pagopa.paymentupdater.dto.payments.Debtor;
@@ -36,9 +38,11 @@ import it.gov.pagopa.paymentupdater.dto.payments.Payer;
 import it.gov.pagopa.paymentupdater.dto.payments.PaymentInfo;
 import it.gov.pagopa.paymentupdater.dto.payments.PaymentRoot;
 import it.gov.pagopa.paymentupdater.dto.payments.Psp;
+import it.gov.pagopa.paymentupdater.dto.payments.Transfer;
 import it.gov.pagopa.paymentupdater.dto.request.ProxyPaymentResponse;
 import it.gov.pagopa.paymentupdater.model.Payment;
 import it.gov.pagopa.paymentupdater.model.PaymentRetry;
+import it.gov.pagopa.paymentupdater.producer.PaymentProducer;
 import it.gov.pagopa.paymentupdater.repository.PaymentRepository;
 import it.gov.pagopa.paymentupdater.repository.PaymentRetryRepository;
 import it.gov.pagopa.paymentupdater.restclient.proxy.api.DefaultApi;
@@ -50,7 +54,13 @@ public abstract class AbstractMock {
 
 	@Autowired
 	ObjectMapper mapper;
-
+	
+	@Value("${interval.function}")
+	private int intervalFunction;
+	
+	@Value("${attempts.max}")
+	private int attemptsMax;
+	
 	@Rule
 	public MockitoRule rule = MockitoJUnit.rule();
 
@@ -68,7 +78,10 @@ public abstract class AbstractMock {
 
 	@Mock
 	PaymentServiceImpl paymentServiceImpl;
-
+	
+	@Mock 
+	PaymentProducer mockPaymentProducer;
+	
 	@MockBean
 	protected DefaultApi mockDefaultApi;
 
@@ -95,10 +108,10 @@ public abstract class AbstractMock {
 		Mockito.when(mockPaymentRetryRepository.findTopElements(Mockito.any(Pageable.class))).thenReturn(retryList);
 	}
 
-//	public void mockGetPaymentByNoticeNumber(Payment payment) {
-//		Mockito.when(mockRepository.getPaymentByRptId(Mockito.anyString())).thenReturn(payment);
-//	}
-
+	public void mockGetPaymentByRptId(List<Payment> payment) {
+		Mockito.when(mockRepository.getPaymentByRptId(Mockito.anyString())).thenReturn(payment);
+	}
+	
 	public void mockGetPaymentInfo() {
 		PaymentRequestsGetResponse paymentRequest = new PaymentRequestsGetResponse();
 		paymentRequest.setDueDate("2022-05-15");
@@ -128,7 +141,9 @@ public abstract class AbstractMock {
 		return returnReminder1;
 	}
 
-	protected String selectPaymentMessageObject(String type, String messageId, String noticeNumber,	String payeeFiscalCode, boolean paid, LocalDateTime dueDate, double amount, String source, String fiscalCode)throws JsonProcessingException {
+	protected String selectPaymentMessageObject(String type, String messageId, String noticeNumber,
+			String payeeFiscalCode, boolean paid, LocalDateTime dueDate, double amount, String source,
+			String fiscalCode) throws JsonProcessingException {
 		PaymentMessage paymentMessage = null;
 		paymentMessage = new PaymentMessage(messageId, noticeNumber, payeeFiscalCode, paid, dueDate, amount, source,
 				fiscalCode);
@@ -229,8 +244,28 @@ public abstract class AbstractMock {
 		return pr;
 	}
 
-	protected String getPaymentRoot() {
+	protected String getPaymentRootString() {
 		return getPaymentRootObject().toString();
+	}
+
+	protected PaymentRoot getPaymentRoot() {
+		PaymentRoot root = new PaymentRoot();
+		List<Transfer> transferList = new ArrayList<Transfer>();
+		Transfer transfer = new Transfer();
+		transfer.setAmount("");
+		transfer.setCompanyName("");
+		transfer.setFiscalCodePA("");
+		transfer.setRemittanceInformation("");
+		transfer.setTransferCategory("");
+		transferList.add(transfer);
+		DebtorPosition position = new DebtorPosition();
+		position.setNoticeNumber("123");
+		Creditor cred = new Creditor();
+		cred.setIdPA("123");
+		root.setDebtorPosition(position);
+		root.setCreditor(cred);
+		root.setTransferList(transferList);
+		return root;
 	}
 
 	protected Payment getTestReminder() {
@@ -271,5 +306,29 @@ public abstract class AbstractMock {
 		Assertions.assertEquals(false, reminder.isPending());
 		return reminder;
 	}
-
+	
+	protected message selectMessageMockObject(String type) {
+		message paymentMessage = null;
+		switch (type) {
+		case "EMPTY":
+			paymentMessage = new message();
+			paymentMessage.setId("ID");
+			paymentMessage.setFiscalCode("A_FISCAL_CODE");
+			paymentMessage.setSenderServiceId("ASenderServiceId");
+			paymentMessage.setSenderUserId("ASenderUserId");
+			paymentMessage.setContentType(MessageContentType.PAYMENT);
+			paymentMessage.setContentSubject("ASubject");
+		default:
+			paymentMessage = new message();
+			paymentMessage.setId("ID");
+			paymentMessage.setFiscalCode("A_FISCAL_CODE");
+			paymentMessage.setSenderServiceId("ASenderServiceId");
+			paymentMessage.setSenderUserId("ASenderUserId");
+			paymentMessage.setContentType(MessageContentType.PAYMENT);
+			paymentMessage.setContentSubject("ASubject");
+			paymentMessage.setContentPaymentDataNoticeNumber("test");
+			paymentMessage.setContentPaymentDataPayeeFiscalCode("test");
+		};
+		return paymentMessage;
+	}
 }

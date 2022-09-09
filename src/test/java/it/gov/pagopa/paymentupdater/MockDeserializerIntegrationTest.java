@@ -1,11 +1,23 @@
 package it.gov.pagopa.paymentupdater;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.specific.SpecificDatumWriter;
+import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.serialization.BytesDeserializer;
+import org.apache.kafka.common.serialization.LongDeserializer;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
@@ -17,6 +29,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.kafka.support.serializer.DeserializationException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -28,14 +41,16 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.applicationinsights.core.dependencies.apachecommons.io.output.ByteArrayOutputStream;
 
-import dto.MessageContentType;
 import dto.message;
 import it.gov.pagopa.paymentupdater.deserialize.AvroMessageDeserializer;
 import it.gov.pagopa.paymentupdater.deserialize.PaymentRootDeserializer;
 import it.gov.pagopa.paymentupdater.dto.payments.PaymentRoot;
 import it.gov.pagopa.paymentupdater.exception.AvroDeserializerException;
+import it.gov.pagopa.paymentupdater.exception.SkipDataException;
+import it.gov.pagopa.paymentupdater.exception.UnexpectedDataException;
 import it.gov.pagopa.paymentupdater.model.JsonLoader;
 import it.gov.pagopa.paymentupdater.model.Payment;
+import it.gov.pagopa.paymentupdater.util.ApplicationContextProvider;
 import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
 
 @SpringBootTest(classes = Application.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -46,7 +61,10 @@ public class MockDeserializerIntegrationTest extends AbstractMock {
 
 	@MockBean
 	JsonAvroConverter converter;
-
+	
+	@Autowired
+	CommonErrorHandler commonErrorHandler;
+	
 	@Mock
 	ObjectMapper mapper;
 
@@ -63,15 +81,7 @@ public class MockDeserializerIntegrationTest extends AbstractMock {
 	@Test
 	public void test_messageDeserialize_ok() throws JsonMappingException, JsonProcessingException, IOException {
 		avroMessageDeserializer = new AvroMessageDeserializer();
-		message paymentMessage = new message();
-		paymentMessage.setId("ID");
-		paymentMessage.setFiscalCode("A_FISCAL_CODE");
-		paymentMessage.setSenderServiceId("ASenderServiceId");
-		paymentMessage.setSenderUserId("ASenderUserId");
-		paymentMessage.setContentType(MessageContentType.PAYMENT);
-		paymentMessage.setContentSubject("ASubject");
-		paymentMessage.setContentPaymentDataNoticeNumber("test");
-		paymentMessage.setContentPaymentDataPayeeFiscalCode("test");
+		message paymentMessage = selectMessageMockObject("FULL");
 		DatumWriter<message> writer = new SpecificDatumWriter<>(
 				message.class);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -81,17 +91,17 @@ public class MockDeserializerIntegrationTest extends AbstractMock {
 		Payment payment = avroMessageDeserializer.deserialize(null, bos.toByteArray());
 		Assertions.assertNotNull(payment);
 	}
-
+	
 	@Test
 	public void test_messageDeserialize_ko() {
 		Assertions.assertThrows(AvroDeserializerException.class,
 				() -> avroMessageDeserializer.deserialize(null, messageSchema.getJsonString().getBytes()));
 	}
-
+	
 	@Test
 	public void test_paymentDeserialize_OK() throws StreamReadException, DatabindException, IOException {
 		PaymentRoot paymentRoot = getPaymentRootObject();
-		byte[] byteArray = getPaymentRoot().getBytes();
+		byte[] byteArray = getPaymentRootString().getBytes();
 		paymentDeserializer = new PaymentRootDeserializer(mapper);
 		Mockito.when(mapper.readValue(byteArray, PaymentRoot.class)).thenReturn(paymentRoot);
 		PaymentRoot deserialized = paymentDeserializer.deserialize(null, byteArray);
@@ -107,5 +117,52 @@ public class MockDeserializerIntegrationTest extends AbstractMock {
 		Assertions.assertThrows(DeserializationException.class,
 				() -> paymentDeserializer.deserialize(null, byteArray));
 	}
+	
+	protected void mockKafkaDeserializationErrorHandler(Exception unexpectedException) {
+		List<ConsumerRecord<?, ?>> records = new ArrayList<>();
+		ConsumerRecord<?, ?> record = new ConsumerRecord<>("message", 0, 439198, null, null);
+		records.add(record);
+		Map<String, Object> props = new HashMap<>();
+		props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "PLAINTEXT://localhost:9065");
+		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+		props.put(ConsumerConfig.GROUP_ID_CONFIG, "baeldung");
+		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, BytesDeserializer.class.getName());
+		props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class.getName());
+		Consumer<?, ?> consumer = new KafkaConsumer<>(props);
+		Collection<TopicPartition> assignment = new ArrayList<>();
+		assignment.add(new TopicPartition("message", 0));
+		consumer.assign(assignment);
 
+		commonErrorHandler = (CommonErrorHandler) ApplicationContextProvider.getBean("commonErrorHandler");
+		commonErrorHandler.handleRemaining(unexpectedException, (List<ConsumerRecord<?, ?>>) records, consumer,
+				null);
+	}
+	
+	@Test
+	public void test_DeserializationException() {
+		Exception deserializationException = new DeserializationException("Deserialization Exception", "Deserialization Exception".getBytes(), false, new Exception());
+		mockKafkaDeserializationErrorHandler(deserializationException);
+		Assertions.assertTrue(true);
+	}
+	
+	@Test
+	public void test_AvroDeserializerException() {
+		Exception avroDeserializerException = new AvroDeserializerException("Avro deserializer exception!", "Avro deserializer exception!".getBytes());
+		mockKafkaDeserializationErrorHandler(avroDeserializerException);
+		Assertions.assertTrue(true);
+	}
+	
+	@Test
+	public void test_UnexpectedDataException() {
+		Exception unexpectedDataException = new UnexpectedDataException("Unexpected data exception!", new Object());
+		mockKafkaDeserializationErrorHandler(unexpectedDataException);
+		Assertions.assertTrue(true);
+	}
+	
+	@Test
+	public void test_SkipDataException() {
+		Exception skipDataException = new SkipDataException("Skip data exception!", new Object());
+		mockKafkaDeserializationErrorHandler(skipDataException);
+		Assertions.assertTrue(true);
+	}
 }
