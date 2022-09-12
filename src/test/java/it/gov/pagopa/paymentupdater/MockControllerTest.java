@@ -46,4 +46,24 @@ public class MockControllerTest extends AbstractMock {
 		// then
 		assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
 	}
+	
+	@Test
+	public void callCheckReady() throws Exception {
+		// when
+		MockHttpServletResponse response = mvc
+				.perform(get("/api/v1/health/ready").accept(MediaType.APPLICATION_JSON)).andReturn()
+				.getResponse();
+		// then
+		assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+	}
+	
+	@Test
+	public void callCheckLive() throws Exception {
+		// when
+		MockHttpServletResponse response = mvc
+				.perform(get("/api/v1/health/live").accept(MediaType.APPLICATION_JSON)).andReturn()
+				.getResponse();
+		// then
+		assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+	}
 }

@@ -86,9 +86,11 @@ public class MessageKafkaConsumerTest extends AbstractMock {
 				"ALSDKdcoekroicjre200", "ALSDKdcoek", "roicjre200");
 		paymentMessage.setPaidFlag(true);
 		messageKafkaConsumer = (MessageKafkaConsumer) ApplicationContextProvider.getBean("messageEventKafkaConsumer");
+		
 		if(!payment.getId().equals(idPaymentMessage)) {
 			mockSaveWithResponse(payment);
 		}
+		
 		mockGetPaymentInfoIsPaidTrue();
 		mockSaveWithResponse(payment);
 		
