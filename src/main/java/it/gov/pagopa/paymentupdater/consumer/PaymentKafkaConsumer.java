@@ -60,23 +60,28 @@ public class PaymentKafkaConsumer {
 		if (Objects.nonNull(root) && Objects.nonNull(root.getDebtorPosition())
 				&& Objects.nonNull(root.getDebtorPosition().getNoticeNumber()) && Objects.nonNull(root.getCreditor())
 				&& Objects.nonNull(root.getCreditor().getIdPA())) {
-			PaymentMessage message = new PaymentMessage();
-			message.setSource("payments");
-			message.setNoticeNumber(root.getDebtorPosition().getNoticeNumber());
-			message.setPayeeFiscalCode(root.getCreditor().getIdPA());
-			message.setPaid(true);
-			List<Payment> payments = paymentService.getPaymentsByRptid(message.getPayeeFiscalCode().concat(message.getNoticeNumber()));
-			payments.stream().forEach(paymentToSend -> {				
-				paymentToSend.setPaidFlag(true);
-				paymentToSend.setPaidDate(LocalDateTime.now());
-				paymentService.save(paymentToSend);
-			});		
-			if (!payments.isEmpty()) {
+
+
+			List<Payment> payments = paymentService.getPaymentsByRptid(root.getCreditor().getIdPA().concat(root.getDebtorPosition().getNoticeNumber()));
+			for (Payment payment : payments) {
+				PaymentMessage message = new PaymentMessage();
+				message.setMessageId(payment.getId());
+				message.setSource("payments");
+				message.setNoticeNumber(payment.getContent_paymentData_noticeNumber());
+				message.setPayeeFiscalCode(payment.getContent_paymentData_payeeFiscalCode());
+				message.setPaid(true);
+
+				payment.setPaidFlag(true);
+				payment.setPaidDate(LocalDateTime.now());
+				paymentService.save(payment);
+
 				sendPaymentUpdateWithRetry(mapper.writeValueAsString(message));
 			}
-			else {
-				log.info("Not found reminder in payment data");
+
+			if (payments.isEmpty()) {
+				log.info("Not found reminder in payment data");	
 			}
+
 		}
 		this.latch.countDown();
 	}
