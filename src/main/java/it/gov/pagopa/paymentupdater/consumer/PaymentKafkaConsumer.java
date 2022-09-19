@@ -79,7 +79,7 @@ public class PaymentKafkaConsumer {
 			}
 
 			if (payments.isEmpty()) {
-				log.info("Not found reminder in payment data");	
+				log.info("Not found payment in payment data");	
 			}
 
 		}

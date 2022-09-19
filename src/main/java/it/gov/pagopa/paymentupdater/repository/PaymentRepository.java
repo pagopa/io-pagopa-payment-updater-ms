@@ -17,7 +17,7 @@ public interface PaymentRepository extends MongoRepository<Payment, String> {
 
 	@Query("{'rptId':?0}")
 	List<Payment> getPaymentByRptId(String rptId);
-
-	int countFindById(String id);
+	
+	int countById(String id);
 
 }

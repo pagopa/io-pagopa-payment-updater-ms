@@ -41,7 +41,7 @@ public class MessageKafkaConsumer {
 			checkNullInMessage(paymentMessage);
 			payload = paymentMessage.toString();
 
-			if(paymentService.countFindById(paymentMessage.getId()) == 0) {
+			if(paymentService.countById(paymentMessage.getId()) == 0) {
 
 				String rptId = paymentMessage.getContent_paymentData_payeeFiscalCode().concat(paymentMessage.getContent_paymentData_noticeNumber());
 				paymentMessage.setRptId(rptId);

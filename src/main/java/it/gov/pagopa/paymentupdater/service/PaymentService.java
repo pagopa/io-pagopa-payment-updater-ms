@@ -19,6 +19,6 @@ public interface PaymentService {
 	
 	List<Payment> getPaymentsByRptid(String rptid);
 
-	int countFindById(String id);
+	int countById(String id);
 
 }

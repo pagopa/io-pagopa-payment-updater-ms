@@ -18,9 +18,7 @@ public class PaymentUtil {
 	private PaymentUtil() {}
 
 	private static final String UNDEFINED = "undefined";
-	
-	public static final String ISPAID = "isPaid";
-	public static final String DUEDATE = "dueDate";
+
 
 	public static void checkNullInMessage(Payment reminder) {
 		if (Objects.nonNull(reminder)) {

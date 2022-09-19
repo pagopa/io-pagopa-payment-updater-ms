@@ -134,8 +134,8 @@ public class PaymentServiceImpl implements PaymentService {
 	}
 
 	@Override
-	public int countFindById(String id) {
-		return paymentRepository.countFindById(id);
+	public int countById(String id) {
+		return paymentRepository.countById(id);
 	}
 
 }
