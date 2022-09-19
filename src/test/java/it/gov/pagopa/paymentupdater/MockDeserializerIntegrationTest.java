@@ -50,7 +50,6 @@ import it.gov.pagopa.paymentupdater.exception.SkipDataException;
 import it.gov.pagopa.paymentupdater.exception.UnexpectedDataException;
 import it.gov.pagopa.paymentupdater.model.JsonLoader;
 import it.gov.pagopa.paymentupdater.model.Payment;
-import it.gov.pagopa.paymentupdater.util.ApplicationContextProvider;
 import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
 
 @SpringBootTest(classes = Application.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -135,7 +134,6 @@ public class MockDeserializerIntegrationTest extends AbstractMock {
 		assignment.add(new TopicPartition("message", 0));
 		consumer.assign(assignment);
 
-		commonErrorHandler = (CommonErrorHandler) ApplicationContextProvider.getBean("commonErrorHandler");
 		commonErrorHandler.handleRemaining(unexpectedException, (List<ConsumerRecord<?, ?>>) records, consumer, null);
 	}
 

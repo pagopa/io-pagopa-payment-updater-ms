@@ -3,6 +3,7 @@ package it.gov.pagopa.paymentupdater;
 import static org.mockito.Mockito.doNothing;
 
 import java.nio.charset.Charset;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -138,10 +139,10 @@ public abstract class AbstractMock {
 
 	protected String selectPaymentMessageObject(String type, String messageId, String noticeNumber,
 			String payeeFiscalCode, boolean paid, LocalDateTime dueDate, double amount, String source,
-			String fiscalCode) throws JsonProcessingException {
+			String fiscalCode, LocalDate paymentDateTime) throws JsonProcessingException {
 		PaymentMessage paymentMessage = null;
 		paymentMessage = new PaymentMessage(messageId, noticeNumber, payeeFiscalCode, paid, dueDate, amount, source,
-				fiscalCode);
+				fiscalCode, paymentDateTime);
 		return mapper.writeValueAsString(paymentMessage);
 	}
 

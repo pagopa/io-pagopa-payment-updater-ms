@@ -99,7 +99,6 @@ public class PaymentServiceImpl implements PaymentService {
 				payments.add(payment);
 				for (Payment pay : payments) {
 					pay.setPaidFlag(true);
-					pay.setPaidDate(LocalDateTime.now());
 					LocalDate proxyDate = PaymentUtil.getLocalDateFromString(res.getDuedate());
 					PaymentUtil.checkDueDateForPayment(proxyDate, pay);	
 					paymentRepository.save(pay);

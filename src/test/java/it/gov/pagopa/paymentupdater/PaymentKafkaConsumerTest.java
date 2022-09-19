@@ -6,12 +6,10 @@ import java.util.List;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
@@ -24,8 +22,6 @@ import it.gov.pagopa.paymentupdater.consumer.MessageKafkaConsumer;
 import it.gov.pagopa.paymentupdater.consumer.PaymentKafkaConsumer;
 import it.gov.pagopa.paymentupdater.dto.payments.Transfer;
 import it.gov.pagopa.paymentupdater.model.Payment;
-import it.gov.pagopa.paymentupdater.producer.PaymentProducer;
-import it.gov.pagopa.paymentupdater.util.ApplicationContextProvider;
 
 @SpringBootTest(classes = Application.class,webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @RunWith(SpringRunner.class)
@@ -35,13 +31,11 @@ import it.gov.pagopa.paymentupdater.util.ApplicationContextProvider;
 @EmbeddedKafka(partitions = 1, brokerProperties = { "listeners=PLAINTEXT://localhost:9093", "port=9093" })
 public class PaymentKafkaConsumerTest extends AbstractMock{
 
-	@MockBean
-	private PaymentProducer producer;
 
-	@InjectMocks
+	@Autowired
 	MessageKafkaConsumer messageKafkaConsumer;
 
-	@InjectMocks
+	@Autowired
 	PaymentKafkaConsumer paymentEventKafkaConsumer;
 
 	@Autowired
@@ -53,7 +47,6 @@ public class PaymentKafkaConsumerTest extends AbstractMock{
 
 	
 	public void test_paymentEventKafkaConsumer(List<Payment> payments) throws InterruptedException, JsonProcessingException {
-		paymentEventKafkaConsumer = (PaymentKafkaConsumer) ApplicationContextProvider.getBean("paymentEventKafkaConsumer");
 		mockSaveWithResponse(selectReminderMockObject("", "1","GENERIC","AAABBB77Y66A444A",3, "ALSDK54654asdA1234567890200", "ALSDK54654asd", "A1234567890200"));
 		
 		mockGetPaymentByRptId(payments);
