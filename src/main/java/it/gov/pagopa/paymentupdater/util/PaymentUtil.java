@@ -10,6 +10,7 @@ import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 
+import it.gov.pagopa.paymentupdater.dto.PaymentMessage;
 import it.gov.pagopa.paymentupdater.model.Payment;
 
 public class PaymentUtil {
@@ -17,6 +18,7 @@ public class PaymentUtil {
 	private PaymentUtil() {}
 
 	private static final String UNDEFINED = "undefined";
+
 
 	public static void checkNullInMessage(Payment reminder) {
 		if (Objects.nonNull(reminder)) {
@@ -46,21 +48,43 @@ public class PaymentUtil {
 	}
 
 
-	public static void checkDueDate(String proxyDueDate, Payment reminder) {
+	public static void checkDueDateForPayment(LocalDate proxyDueDate, Payment reminder) {
+		
+		LocalDate reminderDueDate = reminder.getDueDate() != null ? reminder.getDueDate().toLocalDate() : null;
+
+		if (proxyDueDate == null || !proxyDueDate.equals(reminderDueDate)) {
+			reminder.setDueDate(getLocalDateTime(proxyDueDate));
+		}
+
+	}
+	
+	public static void checkDueDateForPaymentMessage(String proxyDueDate, PaymentMessage message) {
 
 		if(StringUtils.isNotEmpty(proxyDueDate)) {
 			LocalDate localDateProxyDueDate = LocalDate.parse(proxyDueDate);
 
-			LocalDate reminderDueDate = reminder.getDueDate() != null ? reminder.getDueDate().toLocalDate() : null;
+			LocalDate reminderDueDate = message.getDueDate() != null ? message.getDueDate().toLocalDate() : null;
 
 			if(!localDateProxyDueDate.equals(reminderDueDate)) {
-				reminder.setDueDate(getLocalDateTime(localDateProxyDueDate));
+				message.setDueDate(getLocalDateTime(localDateProxyDueDate));
 			}
 		} 
-	}
+	} 
 	
 	public static LocalDateTime getLocalDateTime(LocalDate date) {
-		return LocalDateTime.of(date, LocalTime.of(12,0));
+		LocalDateTime localDateTime = null;
+		if(date!=null) {
+			localDateTime = LocalDateTime.of(date, LocalTime.of(12,0));
+		}
+		return localDateTime;
+	}
+
+	public static LocalDate getLocalDateFromString(String date) {
+		LocalDate localDate = null;
+		if (StringUtils.isNotEmpty(date)) {
+			localDate = LocalDate.parse(date);
+		}
+		return localDate;
 	}
 
 

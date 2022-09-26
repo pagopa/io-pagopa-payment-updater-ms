@@ -2,12 +2,11 @@ package it.gov.pagopa.paymentupdater.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.gov.pagopa.paymentupdater.dto.PaymentMessage;
+import it.gov.pagopa.paymentupdater.dto.ProxyResponse;
 import it.gov.pagopa.paymentupdater.dto.request.ProxyPaymentResponse;
 import it.gov.pagopa.paymentupdater.model.Payment;
 import it.gov.pagopa.paymentupdater.producer.PaymentProducer;
@@ -57,19 +57,11 @@ public class PaymentServiceImpl implements PaymentService {
 	PaymentProducer producer;	
 	@Autowired
 	DefaultApi defaultApi;
-	
+
 	@Autowired
 	@Qualifier("kafkaTemplatePayments")
 	private KafkaTemplate<String, String> kafkaTemplatePayments;
-	
 
-	private static String isPaid = "isPaid";
-
-	@Override
-	public Optional<Payment> getPaymentByNoticeNumberAndFiscalCode(String noticeNumber, String fiscalCode) {
-
-		return paymentRepository.getPaymentByNoticeNumberAndFiscalCode(noticeNumber, fiscalCode);
-	}
 
 	@Override
 	public void save(Payment reminder) {
@@ -78,49 +70,51 @@ public class PaymentServiceImpl implements PaymentService {
 	} 
 
 	@Override
-	public Map<String, String> checkPayment(Payment payment) throws JsonProcessingException, InterruptedException, ExecutionException {
-		Map<String, String> map = new HashMap<>();
-		map.put(isPaid, "false");
-		try {			
+	public ProxyResponse checkPayment(Payment payment) throws JsonProcessingException, InterruptedException, ExecutionException {
+		ProxyResponse proxyResp = new ProxyResponse();
+		try {
 			ApiClient apiClient = new ApiClient();
 			if (enableRestKey) {
 				apiClient.addDefaultHeader("Ocp-Apim-Subscription-Key", proxyEndpointKey);
 			}
 			apiClient.setBasePath(urlProxy);
-			
-			defaultApi.setApiClient(apiClient);	
-			PaymentRequestsGetResponse resp = defaultApi.getPaymentInfo(payment.getRptId(), Constants.X_CLIENT_ID);	
-			map.put("dueDate", resp.getDueDate());
 
-			return map;
+			defaultApi.setApiClient(apiClient);		
+			PaymentRequestsGetResponse resp = defaultApi.getPaymentInfo(payment.getRptId(), Constants.X_CLIENT_ID);
 
+			LocalDate dueDate = PaymentUtil.getLocalDateFromString(resp.getDueDate());	
+			proxyResp.setDueDate(dueDate);
 
-		} catch (HttpServerErrorException errorException) {
+			return proxyResp;
+
+		}
+
+		catch (HttpServerErrorException errorException) {
 			// the reminder is already paid
 			ProxyPaymentResponse res = mapper.readValue(errorException.getResponseBodyAsString(), ProxyPaymentResponse.class);
 			if (res.getDetail_v2().equals("PPT_RPT_DUPLICATA")
 					&& errorException.getStatusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
-					payment.setPaidFlag(true);
-					payment.setPaidDate(LocalDateTime.now());
+
+				List<Payment> payments = paymentRepository.getPaymentByRptId(payment.getRptId());
+				payments.add(payment);
+				for (Payment pay : payments) {
+					pay.setPaidFlag(true);
+					LocalDate proxyDate = PaymentUtil.getLocalDateFromString(res.getDuedate());
+					PaymentUtil.checkDueDateForPayment(proxyDate, pay);	
+					paymentRepository.save(pay);
+
 					PaymentMessage message = new PaymentMessage();
+					message.setMessageId(pay.getId());
 					message.setNoticeNumber(payment.getContent_paymentData_noticeNumber());
 					message.setPayeeFiscalCode(payment.getContent_paymentData_payeeFiscalCode());
-					message.setSource("payments");
-								
-					if(StringUtils.isNotEmpty(res.getDuedate())) {
-						LocalDate localDateDueDate = LocalDate.parse(res.getDuedate());
-				
-						LocalDate reminderDueDate = payment.getDueDate() != null ? payment.getDueDate().toLocalDate() : null;
-						
-						if(!localDateDueDate.equals(reminderDueDate)) {
-							message.setDueDate(PaymentUtil.getLocalDateTime(localDateDueDate));
-						}
-					}
+					message.setSource("payments");			
+					PaymentUtil.checkDueDateForPaymentMessage(res.getDuedate(), message);							
 					producer.sendPaymentUpdate(mapper.writeValueAsString(message), kafkaTemplatePayments, topic);
-					map.put(isPaid, "true");
-					map.put("dueDate", res.getDuedate());
-				
-				return map;
+				}
+
+				proxyResp.setPaid(true);
+				proxyResp.setDueDate(PaymentUtil.getLocalDateFromString(res.getDuedate()));
+				return proxyResp;
 			} else {
 				throw errorException;
 			}
@@ -130,6 +124,17 @@ public class PaymentServiceImpl implements PaymentService {
 	@Override
 	public Optional<Payment> findById(String messageId) {
 		return paymentRepository.findById(messageId);
+	}
+
+	@Override
+	public List<Payment> getPaymentsByRptid(String rptid) {
+		List<Payment> payments = paymentRepository.getPaymentByRptId(rptid);
+		return payments == null ? new ArrayList<>() : payments;
+	}
+
+	@Override
+	public int countById(String id) {
+		return paymentRepository.countById(id);
 	}
 
 }
