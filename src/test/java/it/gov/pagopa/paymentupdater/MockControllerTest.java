@@ -2,7 +2,6 @@ package it.gov.pagopa.paymentupdater;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;

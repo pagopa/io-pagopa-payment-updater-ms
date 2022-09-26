@@ -51,6 +51,7 @@ public class MessageKafkaConsumerTest extends AbstractMock {
 	private String producerTopic;
 
 	@Test
+
 	public void test_producerKafka_Ok() throws JsonProcessingException, InterruptedException, ExecutionException {
 		producer.sendPaymentUpdate(selectPaymentMessageObject("1231", "", "2121", "AAABBB77Y66A444A", false,
 				LocalDateTime.now(), 0.0, "test", "BBBPPP77J99A888A", LocalDate.now()), kafkaTemplate, "payment-updates");

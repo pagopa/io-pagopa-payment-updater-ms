@@ -20,5 +20,4 @@ public interface PaymentService {
 	List<Payment> getPaymentsByRptid(String rptid);
 
 	int countById(String id);
-
 }

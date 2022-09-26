@@ -240,6 +240,7 @@ public abstract class AbstractMock {
 		return pr;
 	}
 
+
 	protected String getPaymentRootString() {
 		return getPaymentRootObject().toString();
 	}

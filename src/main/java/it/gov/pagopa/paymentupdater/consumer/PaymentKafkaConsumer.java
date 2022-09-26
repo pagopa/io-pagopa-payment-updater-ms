@@ -86,6 +86,7 @@ public class PaymentKafkaConsumer {
 				payment.setPaidDate(PaymentUtil.getLocalDateTime(paymentDateTime));
 				paymentService.save(payment);
 
+
 				sendPaymentUpdateWithRetry(mapper.writeValueAsString(message));
 			}
 
@@ -99,6 +100,7 @@ public class PaymentKafkaConsumer {
 
 	private void sendPaymentUpdateWithRetry(String message) {
 		IntervalFunction intervalFn = IntervalFunction.of(intervalFunction);
+
 		RetryConfig retryConfig = RetryConfig.custom().maxAttempts(attemptsMax).intervalFunction(intervalFn).build();
 		Retry retry = Retry.of("sendNotificationWithRetry", retryConfig);
 		Function<Object, String> sendPaymentUpdateFn = Retry.decorateFunction(retry, notObj -> {

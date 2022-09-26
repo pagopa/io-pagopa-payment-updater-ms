@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-
+import java.util.Optional;
 import io.swagger.annotations.Api;
 import it.gov.pagopa.paymentupdater.model.ApiPaymentMessage;
 import it.gov.pagopa.paymentupdater.service.PaymentService;
@@ -34,6 +34,7 @@ public class PaymentController {
 
 	@GetMapping(value = "/check/messages/{messageId}")
 	public ResponseEntity<ApiPaymentMessage> getMessagePayment(@PathVariable String messageId) {
+		;
 		return paymentService.findById(messageId)
 				.map(pay -> ApiPaymentMessage.builder().messageId(pay.getId())
 						.dueDate(Optional.ofNullable(pay.getDueDate())

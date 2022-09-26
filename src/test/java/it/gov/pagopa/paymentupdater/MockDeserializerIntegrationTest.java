@@ -11,6 +11,7 @@ import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.specific.SpecificDatumWriter;
+
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -29,6 +30,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+
 import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.kafka.support.serializer.DeserializationException;
 import org.springframework.test.context.ActiveProfiles;
@@ -46,6 +48,7 @@ import it.gov.pagopa.paymentupdater.deserialize.AvroMessageDeserializer;
 import it.gov.pagopa.paymentupdater.deserialize.PaymentRootDeserializer;
 import it.gov.pagopa.paymentupdater.dto.payments.PaymentRoot;
 import it.gov.pagopa.paymentupdater.exception.AvroDeserializerException;
+
 import it.gov.pagopa.paymentupdater.exception.SkipDataException;
 import it.gov.pagopa.paymentupdater.exception.UnexpectedDataException;
 import it.gov.pagopa.paymentupdater.model.JsonLoader;
@@ -61,9 +64,10 @@ public class MockDeserializerIntegrationTest extends AbstractMock {
 	@MockBean
 	JsonAvroConverter converter;
 
+
 	@Autowired
 	CommonErrorHandler commonErrorHandler;
-
+  
 	@Mock
 	ObjectMapper mapper;
 
@@ -80,8 +84,10 @@ public class MockDeserializerIntegrationTest extends AbstractMock {
 	@Test
 	public void test_messageDeserialize_ok() throws JsonMappingException, JsonProcessingException, IOException {
 		avroMessageDeserializer = new AvroMessageDeserializer();
+
 		message paymentMessage = selectMessageMockObject("FULL");
 		DatumWriter<message> writer = new SpecificDatumWriter<>(message.class);
+
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		Encoder encoder = EncoderFactory.get().binaryEncoder(bos, null);
 		writer.write(paymentMessage, encoder);
@@ -99,7 +105,9 @@ public class MockDeserializerIntegrationTest extends AbstractMock {
 	@Test
 	public void test_paymentDeserialize_OK() throws StreamReadException, DatabindException, IOException {
 		PaymentRoot paymentRoot = getPaymentRootObject();
+
 		byte[] byteArray = getPaymentRootString().getBytes();
+
 		paymentDeserializer = new PaymentRootDeserializer(mapper);
 		Mockito.when(mapper.readValue(byteArray, PaymentRoot.class)).thenReturn(paymentRoot);
 		PaymentRoot deserialized = paymentDeserializer.deserialize(null, byteArray);

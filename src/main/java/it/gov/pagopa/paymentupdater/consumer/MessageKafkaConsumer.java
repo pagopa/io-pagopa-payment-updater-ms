@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-
 import dto.MessageContentType;
 import it.gov.pagopa.paymentupdater.dto.ProxyResponse;
 import it.gov.pagopa.paymentupdater.model.Payment;
@@ -50,7 +49,6 @@ public class MessageKafkaConsumer {
 					PaymentUtil.checkDueDateForPayment(proxyResponse.getDueDate() , paymentMessage);			
 					paymentService.save(paymentMessage);	 		
 				}
-
 			}
 		}
 
