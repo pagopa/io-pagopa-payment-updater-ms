@@ -52,7 +52,7 @@ microservice-chart:
     BOOTSTRAP_SERVER_PAYMENT: "pagopa-p-evh-ns01.servicebus.windows.net:9093" # event-hub pagopa
     BOOTSTRAP_SERVER_PAYMENTUPDATES: "io-p-payments-weu-prod01-evh-ns.servicebus.windows.net:9093" # event-hub internal
     CHECKPOINT_SIZE: "10"
-    KAFKA_MESSAGE: "messages-payments" # event-hub write by fn-messages-cqrs
+    KAFKA_MESSAGE: "messages" # event-hub write by fn-messages-cqrs
     KAFKA_PAYMENTS: "nodo-dei-pagamenti-biz-evt" # event-hub pagopa
     KAFKA_PAYMENT_UPDATES: "payment-updates" # event-hub internal
     MONGO_DATABASE: "db" # mongodb internal
@@ -75,7 +75,7 @@ microservice-chart:
     # required
     APPLICATIONINSIGHTS_CONNECTION_STRING: "appinsights-connection-string"
     # app specific
-    KAFKA_URL_MESSAGE: "messages-payments-io-p-messages-weu-prod01-evh-jaas-connection-string" # event-hub write by fn-messages-cqrs
+    KAFKA_URL_MESSAGE: "messages-io-p-messages-weu-prod01-evh-jaas-connection-string" # event-hub write by fn-messages-cqrs
     KAFKA_URL_PAYMENT: "nodo-dei-pagamenti-biz-evt-pagopa-p-evh-ns01-evh-jaas-connection-string" # event-hub pagopa
     KAFKA_URL_PAYMENTUPDATES: "payment-updates-io-payment-updater-weu-prod01-evh-jaas-connection-string" # event-hub internal
     MONGO_DATABASE_URI: "io-p-payments-mongodb-account-connection-string" # mongodb internal
