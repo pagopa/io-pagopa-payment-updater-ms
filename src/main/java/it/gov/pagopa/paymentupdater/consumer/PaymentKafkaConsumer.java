@@ -1,13 +1,11 @@
 package it.gov.pagopa.paymentupdater.consumer;
 
 import java.lang.reflect.UndeclaredThrowableException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Function;
 
@@ -32,7 +30,6 @@ import it.gov.pagopa.paymentupdater.model.PaymentRetry;
 import it.gov.pagopa.paymentupdater.producer.PaymentProducer;
 import it.gov.pagopa.paymentupdater.service.PaymentRetryService;
 import it.gov.pagopa.paymentupdater.service.PaymentService;
-import it.gov.pagopa.paymentupdater.util.PaymentUtil;
 import it.gov.pagopa.paymentupdater.util.TelemetryCustomEvent;
 import lombok.extern.slf4j.Slf4j;
 
@@ -74,16 +71,11 @@ public class PaymentKafkaConsumer {
 				message.setNoticeNumber(payment.getContent_paymentData_noticeNumber());
 				message.setPayeeFiscalCode(payment.getContent_paymentData_payeeFiscalCode());
 				message.setPaid(true);
-
-				LocalDate paymentDateTime = null;
 				if(root.getPaymentInfo()!=null && StringUtils.isNotEmpty(root.getPaymentInfo().getPaymentDateTime())) {
-					paymentDateTime = LocalDate.parse(root.getPaymentInfo().getPaymentDateTime());
+					message.setPaymentDateTime(LocalDateTime.parse(root.getPaymentInfo().getPaymentDateTime()));
+					payment.setPaidDate(LocalDateTime.parse(root.getPaymentInfo().getPaymentDateTime()));
 				} 
-							
-				message.setPaymentDateTime(paymentDateTime);
-
-				payment.setPaidFlag(true);
-				payment.setPaidDate(PaymentUtil.getLocalDateTime(paymentDateTime));
+				payment.setPaidFlag(true);				
 				paymentService.save(payment);
 
 

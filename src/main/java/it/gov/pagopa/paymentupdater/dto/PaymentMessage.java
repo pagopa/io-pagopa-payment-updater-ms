@@ -22,5 +22,5 @@ public class PaymentMessage {
 	double amount;
 	String source;
 	String fiscalCode;
-	LocalDate paymentDateTime;
+	LocalDateTime paymentDateTime;
 }

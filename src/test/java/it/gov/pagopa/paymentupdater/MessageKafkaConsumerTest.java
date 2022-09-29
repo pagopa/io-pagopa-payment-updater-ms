@@ -1,6 +1,5 @@
 package it.gov.pagopa.paymentupdater;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +53,7 @@ public class MessageKafkaConsumerTest extends AbstractMock {
 
 	public void test_producerKafka_Ok() throws JsonProcessingException, InterruptedException, ExecutionException {
 		producer.sendPaymentUpdate(selectPaymentMessageObject("1231", "", "2121", "AAABBB77Y66A444A", false,
-				LocalDateTime.now(), 0.0, "test", "BBBPPP77J99A888A", LocalDate.now()), kafkaTemplate, "payment-updates");
+				LocalDateTime.now(), 0.0, "test", "BBBPPP77J99A888A", LocalDateTime.now()), kafkaTemplate, "payment-updates");
 		Assertions.assertTrue(true);
 	}
 

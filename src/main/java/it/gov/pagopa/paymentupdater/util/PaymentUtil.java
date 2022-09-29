@@ -3,12 +3,15 @@ package it.gov.pagopa.paymentupdater.util;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
+
 
 import it.gov.pagopa.paymentupdater.dto.PaymentMessage;
 import it.gov.pagopa.paymentupdater.model.Payment;
@@ -85,6 +88,12 @@ public class PaymentUtil {
 			localDate = LocalDate.parse(date);
 		}
 		return localDate;
+	}
+	
+	public static LocalDateTime getCurrentTimeZone(LocalDateTime time, ZoneId oldZone, ZoneId newZone) {
+		return Optional.ofNullable(time).map(currTime -> time.atZone(oldZone)
+				.withZoneSameInstant(newZone)
+				.toLocalDateTime()).orElse(null);
 	}
 
 
