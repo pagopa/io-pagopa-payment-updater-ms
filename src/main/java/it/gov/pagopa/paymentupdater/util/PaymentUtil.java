@@ -91,7 +91,7 @@ public class PaymentUtil {
 	}
 	
 	public static LocalDateTime getCurrentTimeZone(LocalDateTime time, ZoneId oldZone, ZoneId newZone) {
-		return Optional.ofNullable(time).map(currTime -> time.atZone(oldZone)
+		return Optional.ofNullable(time).map(currTime -> currTime.atZone(oldZone)
 				.withZoneSameInstant(newZone)
 				.toLocalDateTime()).orElse(null);
 	}
