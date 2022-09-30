@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.gov.pagopa.paymentupdater.consumer.MessageKafkaConsumer;
 import it.gov.pagopa.paymentupdater.consumer.PaymentKafkaConsumer;
+import it.gov.pagopa.paymentupdater.dto.payments.Creditor;
 import it.gov.pagopa.paymentupdater.dto.payments.PaymentRoot;
 import it.gov.pagopa.paymentupdater.dto.payments.Transfer;
 import it.gov.pagopa.paymentupdater.model.Payment;
@@ -70,7 +71,9 @@ public class PaymentKafkaConsumerTest extends AbstractMock {
 		mockGetPaymentByRptId(payments);
 
 		PaymentRoot root = getPaymentRoot();
-		root.setCreditor(null);
+		Creditor creditor = root.getCreditor();
+		creditor.setIdPA(null);
+		root.setCreditor(creditor);
 
 		Transfer transfer = root.getTransferList().get(0);
 		String transferString = transfer.getAmount().concat(
