@@ -2,7 +2,7 @@ microservice-chart:
   namespace: "payments"
   image:
     repository: "iopcommonacr.azurecr.io/io-pagopa-payment-updater-ms"
-    tag: "2.0.0"
+    tag: "2.1.0"
     pullPolicy: Always
   livenessProbe:
     httpGet:
@@ -26,7 +26,6 @@ microservice-chart:
     host: "weubeta.payments.internal.io.pagopa.it"
     # path: '/api/v1/payment/(.*)'
     path: "/(api/v1/payment/.*)"
-
   resources:
     requests:
       memory: "512Mi"
