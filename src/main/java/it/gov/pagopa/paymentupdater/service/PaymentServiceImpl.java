@@ -94,28 +94,32 @@ public class PaymentServiceImpl implements PaymentService {
 			// the reminder is already paid
 			ProxyPaymentResponse res = mapper.readValue(errorException.getResponseBodyAsString(),
 					ProxyPaymentResponse.class);
-			if (Arrays.asList("PAA_PAGAMENTO_DUPLICATO", "PPT_RPT_DUPLICATA").contains(res.getDetail_v2())
-					&& errorException.getStatusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
+			if (res.getDetail_v2() != null) {
+				if (Arrays.asList("PAA_PAGAMENTO_DUPLICATO", "PPT_RPT_DUPLICATA").contains(res.getDetail_v2())
+						&& errorException.getStatusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
 
-				List<Payment> payments = paymentRepository.getPaymentByRptId(payment.getRptId());
-				payments.add(payment);
-				for (Payment pay : payments) {
-					pay.setPaidFlag(true);
-					LocalDate proxyDate = PaymentUtil.getLocalDateFromString(res.getDuedate());
-					PaymentUtil.checkDueDateForPayment(proxyDate, pay);
-					paymentRepository.save(pay);
+					List<Payment> payments = paymentRepository.getPaymentByRptId(payment.getRptId());
+					payments.add(payment);
+					for (Payment pay : payments) {
+						pay.setPaidFlag(true);
+						LocalDate proxyDate = PaymentUtil.getLocalDateFromString(res.getDuedate());
+						PaymentUtil.checkDueDateForPayment(proxyDate, pay);
+						paymentRepository.save(pay);
 
-					PaymentMessage message = new PaymentMessage();
-					message.setMessageId(pay.getId());
-					message.setNoticeNumber(payment.getContent_paymentData_noticeNumber());
-					message.setPayeeFiscalCode(payment.getContent_paymentData_payeeFiscalCode());
-					message.setSource("payments");
-					PaymentUtil.checkDueDateForPaymentMessage(res.getDuedate(), message);
-					producer.sendPaymentUpdate(mapper.writeValueAsString(message), kafkaTemplatePayments, topic);
+						PaymentMessage message = new PaymentMessage();
+						message.setMessageId(pay.getId());
+						message.setNoticeNumber(payment.getContent_paymentData_noticeNumber());
+						message.setPayeeFiscalCode(payment.getContent_paymentData_payeeFiscalCode());
+						message.setSource("payments");
+						PaymentUtil.checkDueDateForPaymentMessage(res.getDuedate(), message);
+						producer.sendPaymentUpdate(mapper.writeValueAsString(message), kafkaTemplatePayments, topic);
+					}
+
+					proxyResp.setPaid(true);
+					proxyResp.setDueDate(PaymentUtil.getLocalDateFromString(res.getDuedate()));
+					return proxyResp;
 				}
-
-				proxyResp.setPaid(true);
-				proxyResp.setDueDate(PaymentUtil.getLocalDateFromString(res.getDuedate()));
+				proxyResp.setPaid(false);
 				return proxyResp;
 			} else {
 				throw errorException;
