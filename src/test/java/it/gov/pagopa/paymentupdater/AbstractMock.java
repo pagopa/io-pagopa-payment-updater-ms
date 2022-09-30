@@ -133,6 +133,36 @@ public abstract class AbstractMock {
 		returnReminder1.setDueDate(LocalDateTime.now());
 		returnReminder1.setContent_paymentData_noticeNumber(paymentDataNoticeNumber);
 		returnReminder1.setContent_paymentData_payeeFiscalCode(paymentDataFiscalCode);
+		returnReminder1.setReadFlag(true);
+		returnReminder1.setDateReminder(new ArrayList<>());
+		returnReminder1.setLastDateReminder(LocalDateTime.of(2022, 01, 01, 1, 1));
+		returnReminder1.setMaxPaidMessageSend(10);
+		returnReminder1.setReadDate(LocalDateTime.of(2022, 01, 01, 1, 1));
+		returnReminder1.setMaxReadMessageSend(10);
+		returnReminder1.setContent_paymentData_amount(0.0);
+		returnReminder1.setContent_paymentData_invalidAfterDueDate(true);
+		returnReminder1.setContent_subject("");
+		returnReminder1.setCreatedAt(1l);
+		returnReminder1.setPending(false);
+		returnReminder1.setSenderServiceId("");
+		returnReminder1.setContent_paymentData_amount(0.0);
+		returnReminder1.setTimeToLiveSeconds(5);
+		returnReminder1.setFeature_level_type(FeatureLevelType.ADVANCED);
+		returnReminder1.setSenderServiceId("");
+		returnReminder1.setSenderUserId("");
+		Assertions.assertEquals(1l, returnReminder1.getCreatedAt());
+		Assertions.assertEquals(FeatureLevelType.ADVANCED, returnReminder1.getFeature_level_type());
+		Assertions.assertEquals(true, returnReminder1.isReadFlag());
+		Assertions.assertEquals(new ArrayList<>(), returnReminder1.getDateReminder());
+		Assertions.assertEquals(LocalDateTime.of(2022, 01, 01, 1, 1), returnReminder1.getLastDateReminder());
+		Assertions.assertEquals(10, returnReminder1.getMaxPaidMessageSend());
+		Assertions.assertEquals(LocalDateTime.of(2022, 01, 01, 1, 1), returnReminder1.getReadDate());
+		Assertions.assertEquals(10, returnReminder1.getMaxReadMessageSend());
+		Assertions.assertEquals(0.0, returnReminder1.getContent_paymentData_amount());
+		Assertions.assertEquals(true, returnReminder1.isContent_paymentData_invalidAfterDueDate());
+		Assertions.assertEquals("", returnReminder1.getSenderUserId());
+		Assertions.assertEquals(5, returnReminder1.getTimeToLiveSeconds());
+		Assertions.assertEquals(false, returnReminder1.isPending());
 		return returnReminder1;
 	}
 
@@ -160,6 +190,7 @@ public abstract class AbstractMock {
 
 	protected PaymentRetry getPaymentRetry() {
 		PaymentRetry retry = new PaymentRetry();
+		LocalDateTime date = LocalDateTime.now();
 		retry.setAmount(0);
 		retry.setId("1");
 		retry.setNoticeNumber("abc");
@@ -167,6 +198,10 @@ public abstract class AbstractMock {
 		retry.setMessageId("123");
 		retry.setPayeeFiscalCode("ABC");
 		retry.setSource("payments");
+		retry.setDueDate(date.toLocalDate());
+		retry.setInsertionDate(date);
+		Assertions.assertEquals(date, retry.getInsertionDate());
+		Assertions.assertEquals(date.toLocalDate(), retry.getDueDate());
 		Assertions.assertEquals(0, retry.getAmount());
 		Assertions.assertEquals("1", retry.getId());
 		Assertions.assertEquals("abc", retry.getNoticeNumber());
@@ -262,45 +297,6 @@ public abstract class AbstractMock {
 		root.setCreditor(cred);
 		root.setTransferList(transferList);
 		return root;
-	}
-
-	protected Payment getTestReminder() {
-		Payment reminder = new Payment();
-		reminder.setReadFlag(true);
-		reminder.setDateReminder(new ArrayList<>());
-		reminder.setLastDateReminder(LocalDateTime.of(2022, 01, 01, 1, 1));
-		reminder.setMaxPaidMessageSend(10);
-		reminder.setReadDate(LocalDateTime.of(2022, 01, 01, 1, 1));
-		reminder.setMaxReadMessageSend(10);
-		reminder.setContent_paymentData_amount(0.0);
-		reminder.setContent_paymentData_invalidAfterDueDate(true);
-		reminder.setContent_paymentData_payeeFiscalCode("");
-		reminder.setContent_subject("");
-		reminder.setCreatedAt(1l);
-		reminder.setPending(false);
-		reminder.setSenderServiceId("");
-		reminder.setContent_paymentData_amount(0.0);
-		reminder.setTimeToLiveSeconds(5);
-		reminder.setContent_paymentData_noticeNumber("");
-		reminder.setFeature_level_type(FeatureLevelType.ADVANCED);
-		reminder.setSenderServiceId("");
-		reminder.setSenderUserId("");
-		getPaymentRetry();
-		Assertions.assertEquals(1l, reminder.getCreatedAt());
-		Assertions.assertEquals(FeatureLevelType.ADVANCED, reminder.getFeature_level_type());
-		Assertions.assertEquals(true, reminder.isReadFlag());
-		Assertions.assertEquals(new ArrayList<>(), reminder.getDateReminder());
-		Assertions.assertEquals(LocalDateTime.of(2022, 01, 01, 1, 1), reminder.getLastDateReminder());
-		Assertions.assertEquals(10, reminder.getMaxPaidMessageSend());
-		Assertions.assertEquals(LocalDateTime.of(2022, 01, 01, 1, 1), reminder.getReadDate());
-		Assertions.assertEquals(10, reminder.getMaxReadMessageSend());
-		Assertions.assertEquals(0.0, reminder.getContent_paymentData_amount());
-		Assertions.assertEquals(true, reminder.isContent_paymentData_invalidAfterDueDate());
-		Assertions.assertEquals("", reminder.getContent_paymentData_payeeFiscalCode());
-		Assertions.assertEquals("", reminder.getSenderUserId());
-		Assertions.assertEquals(5, reminder.getTimeToLiveSeconds());
-		Assertions.assertEquals(false, reminder.isPending());
-		return reminder;
 	}
 	
 	protected message selectMessageMockObject(String type) {
