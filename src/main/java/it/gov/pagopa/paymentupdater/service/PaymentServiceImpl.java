@@ -108,7 +108,7 @@ public class PaymentServiceImpl implements PaymentService {
 
 						PaymentMessage message = new PaymentMessage();
 						message.setMessageId(pay.getId());
-						message.setFiscalCode(payment.getFiscalCode());
+						message.setFiscalCode(pay.getFiscalCode());
 						message.setNoticeNumber(payment.getContent_paymentData_noticeNumber());
 						message.setPayeeFiscalCode(payment.getContent_paymentData_payeeFiscalCode());
 						message.setSource("payments");
