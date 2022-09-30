@@ -50,7 +50,6 @@ public class MockControllerTest extends AbstractMock {
 		assertThat(resp).isNotNull();
 		assertThat(resp.getFiscalCode()).isNotBlank();
 		assertThat(resp.getNoticeNumber()).isNotBlank();
-
 		assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
 	}
 	

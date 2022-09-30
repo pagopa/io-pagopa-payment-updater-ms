@@ -62,12 +62,12 @@ public class PaymentKafkaConsumer {
 				&& Objects.nonNull(root.getDebtorPosition().getNoticeNumber()) && Objects.nonNull(root.getCreditor())
 				&& Objects.nonNull(root.getCreditor().getIdPA())) {
 
-
 			List<Payment> payments = paymentService.getPaymentsByRptid(root.getCreditor().getIdPA().concat(root.getDebtorPosition().getNoticeNumber()));
 			for (Payment payment : payments) {
 				PaymentMessage message = new PaymentMessage();
 				message.setMessageId(payment.getId());
 				message.setSource("payments");
+				message.setFiscalCode(payment.getFiscalCode());
 				message.setNoticeNumber(payment.getContent_paymentData_noticeNumber());
 				message.setPayeeFiscalCode(payment.getContent_paymentData_payeeFiscalCode());
 				message.setPaid(true);
@@ -77,8 +77,6 @@ public class PaymentKafkaConsumer {
 				} 
 				payment.setPaidFlag(true);				
 				paymentService.save(payment);
-
-
 				sendPaymentUpdateWithRetry(mapper.writeValueAsString(message));
 			}
 
