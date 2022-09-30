@@ -131,6 +131,15 @@ public abstract class AbstractMock {
 		Mockito.when(mockDefaultApi.getPaymentInfo(Mockito.anyString(), Mockito.anyString())).thenThrow(errorResponse);
 	}
 
+	public void mockGetPaymentInfoError() throws JsonProcessingException {
+		ProxyPaymentResponse proxyResponse = getProxyResponse();
+		proxyResponse.setDetail_v2(null);
+		HttpServerErrorException errorResponse = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "",
+				mapper.writeValueAsString(proxyResponse).getBytes(), Charset.defaultCharset());
+
+		Mockito.when(mockDefaultApi.getPaymentInfo(Mockito.anyString(), Mockito.anyString())).thenThrow(errorResponse);
+	}
+
 	protected Payment selectReminderMockObject(String type, String id, String contentType, String fiscalCode,
 			int numReminder, String rptId, String paymentDataNoticeNumber, String paymentDataFiscalCode) {
 		Payment returnReminder1 = null;
