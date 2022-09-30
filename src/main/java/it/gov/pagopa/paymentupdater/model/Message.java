@@ -1,5 +1,7 @@
 package it.gov.pagopa.paymentupdater.model;
 
+import java.time.LocalDateTime;
+
 import org.springframework.data.annotation.Id;
 
 import dto.FeatureLevelType;
@@ -8,7 +10,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter @Setter @NoArgsConstructor 
+@Getter 
+@Setter 
+@NoArgsConstructor 
 public class Message {
 
 	@Id
@@ -16,7 +20,7 @@ public class Message {
 	protected String senderServiceId;
 	protected String senderUserId="undefined";
 	protected int timeToLiveSeconds;
-	private Long dueDate;
+	private LocalDateTime dueDate;
 	protected long createdAt;
 	protected boolean isPending = true;
 	protected String content_subject;

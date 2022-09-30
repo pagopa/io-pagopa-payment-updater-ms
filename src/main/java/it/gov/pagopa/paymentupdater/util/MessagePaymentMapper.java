@@ -1,5 +1,10 @@
 package it.gov.pagopa.paymentupdater.util;
 
+
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.TimeZone;
 import dto.message;
 import it.gov.pagopa.paymentupdater.model.Payment;
 
@@ -8,7 +13,12 @@ public class MessagePaymentMapper {
     public static Payment messageToPayment(message msg) {
         Payment payment = new Payment();
         payment.setId(msg.getId());
-        payment.setDueDate(msg.getDueDate());
+
+        if(msg.getDueDate() != 0L) {
+        	LocalDate reminderDueDate = LocalDateTime.ofInstant(Instant.ofEpochSecond(msg.getDueDate()),
+                    TimeZone.getDefault().toZoneId()).toLocalDate();
+        	payment.setDueDate(PaymentUtil.getLocalDateTime(reminderDueDate));
+        }
         payment.setFiscalCode(msg.getFiscalCode());
         payment.setFeature_level_type(msg.getFeatureLevelType());
         payment.setContent_type(msg.getContentType());

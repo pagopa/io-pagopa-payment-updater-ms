@@ -1,22 +1,23 @@
 package it.gov.pagopa.paymentupdater.service;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import it.gov.pagopa.paymentupdater.dto.ProxyResponse;
 import it.gov.pagopa.paymentupdater.model.Payment;
 
 public interface PaymentService {
 
-	Optional<Payment> getPaymentByNoticeNumberAndFiscalCode(String noticeNumber, String fiscalCode);
-
 	void save(Payment reminder);
 
-	Map<String, Boolean> checkPayment(Payment payment) throws JsonProcessingException, InterruptedException, ExecutionException;
+	ProxyResponse checkPayment(Payment payment) throws JsonProcessingException, InterruptedException, ExecutionException;
 
 	Optional<Payment> findById(String messageId);
+	
+	List<Payment> getPaymentsByRptid(String rptid);
 
-	Map<String, Boolean> checkPaymentRest(String rptId) throws JsonProcessingException, InterruptedException, ExecutionException;
+	int countById(String id);
 }

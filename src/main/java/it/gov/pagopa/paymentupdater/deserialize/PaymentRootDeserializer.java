@@ -20,22 +20,23 @@ public class PaymentRootDeserializer implements Deserializer<PaymentRoot> {
 	}
 
 	@Override
-	public PaymentRoot deserialize(String s, byte[] bytes) {
-		PaymentRoot paymentRoot = null;
-		try {
-			paymentRoot = mapper.readValue(bytes, PaymentRoot.class);
-		} catch (Exception e) {
-			log.error("Error in deserializing the PaymentRoot for consumer payment-updates|ERROR=" + e.getMessage());
-			throw new DeserializationException(
-					"Error in deserializing the PaymentRoot for consumer payment-updates|ERROR=" + e.getMessage(),
-					bytes, false, e);
-		}
+    public PaymentRoot deserialize(String s, byte[] bytes) {
+        PaymentRoot paymentRoot = null;
+        try {
+            paymentRoot = mapper.readValue(bytes, PaymentRoot.class);
+        } catch (Exception e) {
+            log.error("Error in deserializing the PaymentRoot for consumer payment-updates|ERROR=" + e.getMessage());
+            throw new DeserializationException(
+                    "Error in deserializing the PaymentRoot for consumer payment-updates|ERROR=" + e.getMessage(),
+                    bytes, false, e);
+        }
 
-		if (Objects.isNull(paymentRoot) || Objects.isNull(paymentRoot.getDebtorPosition())
-				|| Objects.isNull(paymentRoot.getCreditor())) {
-			throw new SkipDataException("Skip Data that not satisfies constraints", paymentRoot);
-		}
-		return paymentRoot;
-	}
+       if (Objects.isNull(paymentRoot) || Objects.isNull(paymentRoot.getDebtorPosition())
+                || Objects.isNull(paymentRoot.getCreditor())) {
+            throw new SkipDataException("Skip Data that not satisfies constraints", paymentRoot);
+        }
+        return paymentRoot;
+    }
+
 
 }
