@@ -54,13 +54,13 @@ public abstract class AbstractMock {
 
 	@Autowired
 	ObjectMapper mapper;
-	
+
 	@Value("${interval.function}")
 	private int intervalFunction;
-	
+
 	@Value("${attempts.max}")
 	private int attemptsMax;
-	
+
 	@Rule
 	public MockitoRule rule = MockitoJUnit.rule();
 
@@ -78,10 +78,10 @@ public abstract class AbstractMock {
 
 	@Mock
 	PaymentServiceImpl paymentServiceImpl;
-	
-	@Mock 
+
+	@Mock
 	PaymentProducer mockPaymentProducer;
-	
+
 	@MockBean
 	protected DefaultApi mockDefaultApi;
 
@@ -106,7 +106,7 @@ public abstract class AbstractMock {
 	public void mockGetPaymentByRptId(List<Payment> payment) {
 		Mockito.when(mockRepository.getPaymentByRptId(Mockito.anyString())).thenReturn(payment);
 	}
-	
+
 	public void mockGetPaymentInfo() {
 		PaymentRequestsGetResponse paymentRequest = new PaymentRequestsGetResponse();
 		paymentRequest.setDueDate("2022-05-15");
@@ -118,6 +118,15 @@ public abstract class AbstractMock {
 	public void mockGetPaymentInfoIsPaidTrue() throws JsonProcessingException {
 		HttpServerErrorException errorResponse = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "",
 				mapper.writeValueAsString(getProxyResponse()).getBytes(), Charset.defaultCharset());
+
+		Mockito.when(mockDefaultApi.getPaymentInfo(Mockito.anyString(), Mockito.anyString())).thenThrow(errorResponse);
+	}
+
+	public void mockGetPaymentInfoIsNotPaid() throws JsonProcessingException {
+		ProxyPaymentResponse proxyResponse = getProxyResponse();
+		proxyResponse.setDetail_v2("PAA_PAGAMNETO_ANNULLATO");
+		HttpServerErrorException errorResponse = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "",
+				mapper.writeValueAsString(proxyResponse).getBytes(), Charset.defaultCharset());
 
 		Mockito.when(mockDefaultApi.getPaymentInfo(Mockito.anyString(), Mockito.anyString())).thenThrow(errorResponse);
 	}
@@ -274,7 +283,6 @@ public abstract class AbstractMock {
 		return pr;
 	}
 
-
 	protected String getPaymentRootString() {
 		return getPaymentRootObject().toString();
 	}
@@ -298,29 +306,30 @@ public abstract class AbstractMock {
 		root.setTransferList(transferList);
 		return root;
 	}
-	
+
 	protected message selectMessageMockObject(String type) {
 		message paymentMessage = null;
 		switch (type) {
-		case "EMPTY":
-			paymentMessage = new message();
-			paymentMessage.setId("ID");
-			paymentMessage.setFiscalCode("A_FISCAL_CODE");
-			paymentMessage.setSenderServiceId("ASenderServiceId");
-			paymentMessage.setSenderUserId("ASenderUserId");
-			paymentMessage.setContentType(MessageContentType.PAYMENT);
-			paymentMessage.setContentSubject("ASubject");
-		default:
-			paymentMessage = new message();
-			paymentMessage.setId("ID");
-			paymentMessage.setFiscalCode("A_FISCAL_CODE");
-			paymentMessage.setSenderServiceId("ASenderServiceId");
-			paymentMessage.setSenderUserId("ASenderUserId");
-			paymentMessage.setContentType(MessageContentType.PAYMENT);
-			paymentMessage.setContentSubject("ASubject");
-			paymentMessage.setContentPaymentDataNoticeNumber("test");
-			paymentMessage.setContentPaymentDataPayeeFiscalCode("test");
-		};
+			case "EMPTY":
+				paymentMessage = new message();
+				paymentMessage.setId("ID");
+				paymentMessage.setFiscalCode("A_FISCAL_CODE");
+				paymentMessage.setSenderServiceId("ASenderServiceId");
+				paymentMessage.setSenderUserId("ASenderUserId");
+				paymentMessage.setContentType(MessageContentType.PAYMENT);
+				paymentMessage.setContentSubject("ASubject");
+			default:
+				paymentMessage = new message();
+				paymentMessage.setId("ID");
+				paymentMessage.setFiscalCode("A_FISCAL_CODE");
+				paymentMessage.setSenderServiceId("ASenderServiceId");
+				paymentMessage.setSenderUserId("ASenderUserId");
+				paymentMessage.setContentType(MessageContentType.PAYMENT);
+				paymentMessage.setContentSubject("ASubject");
+				paymentMessage.setContentPaymentDataNoticeNumber("test");
+				paymentMessage.setContentPaymentDataPayeeFiscalCode("test");
+		}
+		;
 		return paymentMessage;
 	}
 }
