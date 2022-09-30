@@ -31,7 +31,6 @@ public class PaymentController {
 	@Autowired
 	PaymentService paymentService;
 
-
 	@GetMapping(value = "/check/messages/{messageId}")
 	public ResponseEntity<ApiPaymentMessage> getMessagePayment(@PathVariable String messageId) {
 		return paymentService.findById(messageId)

@@ -1,7 +1,5 @@
 package it.gov.pagopa.paymentupdater;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
@@ -19,7 +17,7 @@ class PaymentUpdaterApplicationTests {
 		Application.main(new String[] {});
 		Assertions.assertTrue(true);
 	}
-	
+
 	@Test
 	void timeZoneCheck() {
 		LocalDateTime oldDate = LocalDateTime.now();

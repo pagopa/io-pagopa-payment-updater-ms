@@ -53,7 +53,8 @@ public class MessageKafkaConsumerTest extends AbstractMock {
 
 	public void test_producerKafka_Ok() throws JsonProcessingException, InterruptedException, ExecutionException {
 		producer.sendPaymentUpdate(selectPaymentMessageObject("1231", "", "2121", "AAABBB77Y66A444A", false,
-				LocalDateTime.now(), 0.0, "test", "BBBPPP77J99A888A", LocalDateTime.now()), kafkaTemplate, "payment-updates");
+				LocalDateTime.now(), 0.0, "test", "BBBPPP77J99A888A", LocalDateTime.now()), kafkaTemplate,
+				"payment-updates");
 		Assertions.assertTrue(true);
 	}
 
@@ -75,18 +76,18 @@ public class MessageKafkaConsumerTest extends AbstractMock {
 	}
 
 	public void test_messageEventKafkaConsumer_IsPaidTrue(Payment payment, String idPaymentMessage) throws Throwable {
-		
+
 		Payment paymentMessage = selectReminderMockObject("", idPaymentMessage, "PAYMENT", "AAABBB77Y66A444A", 3,
 				"ALSDKdcoekroicjre200", "ALSDKdcoek", "roicjre200");
 		paymentMessage.setPaidFlag(true);
-		
-		if(!payment.getId().equals(idPaymentMessage)) {
+
+		if (!payment.getId().equals(idPaymentMessage)) {
 			mockSaveWithResponse(payment);
 		}
-		
+
 		mockGetPaymentInfoIsPaidTrue();
 		mockSaveWithResponse(payment);
-		
+
 		List<Payment> payments = new ArrayList<>();
 		payments.add(payment);
 		mockGetPaymentByRptId(payments);
@@ -96,14 +97,73 @@ public class MessageKafkaConsumerTest extends AbstractMock {
 		Assertions.assertTrue(messageKafkaConsumer.getPayload().contains("paidFlag=true"));
 		Assertions.assertEquals(0L, messageKafkaConsumer.getLatch().getCount());
 	}
-	
+
+	public void test_messageEventKafkaConsumer_IsPaidFalse(Payment payment, String idPaymentMessage) throws Throwable {
+
+		Payment paymentMessage = selectReminderMockObject("", idPaymentMessage, "PAYMENT", "AAABBB77Y66A444A", 3,
+				"ALSDKdcoekroicjre200", "ALSDKdcoek", "roicjre200");
+		paymentMessage.setPaidFlag(false);
+
+		if (!payment.getId().equals(idPaymentMessage)) {
+			mockSaveWithResponse(payment);
+		}
+
+		mockGetPaymentInfoIsNotPaid();
+		mockSaveWithResponse(payment);
+
+		List<Payment> payments = new ArrayList<>();
+		payments.add(payment);
+		mockGetPaymentByRptId(payments);
+		mockSaveWithResponse(payment);
+
+		messageKafkaConsumer.messageKafkaListener(paymentMessage);
+		Assertions.assertTrue(messageKafkaConsumer.getPayload().contains("paidFlag=false"));
+		Assertions.assertEquals(0L, messageKafkaConsumer.getLatch().getCount());
+	}
+
+	public void test_messageEventKafkaConsumer_toThrow(Payment payment, String idPaymentMessage) throws Throwable {
+
+		Payment paymentMessage = selectReminderMockObject("", idPaymentMessage, "PAYMENT", "AAABBB77Y66A444A", 3,
+				"ALSDKdcoekroicjre200", "ALSDKdcoek", "roicjre200");
+		paymentMessage.setPaidFlag(false);
+
+		if (!payment.getId().equals(idPaymentMessage)) {
+			mockSaveWithResponse(payment);
+		}
+
+		mockGetPaymentInfoError();
+		mockSaveWithResponse(payment);
+
+		List<Payment> payments = new ArrayList<>();
+		payments.add(payment);
+		mockGetPaymentByRptId(payments);
+		mockSaveWithResponse(payment);
+
+		Assertions.assertThrows(RuntimeException.class,
+				() -> messageKafkaConsumer.messageKafkaListener(paymentMessage));
+	}
+
 	@Test
 	public void test_messageEventKafkaConsumer_IdDifferent() throws Throwable {
 		Payment payment = selectReminderMockObject("", "1", "PAYMENT", "AAABBB77Y66A444A", 3, "ALSDKdcoekroicjre200",
 				"ALSDKdcoek", "roicjre200");
 		test_messageEventKafkaConsumer_IsPaidTrue(payment, "2");
 	}
-	
+
+	@Test
+	public void test_messageEventKafkaConsumer_NotPaid() throws Throwable {
+		Payment payment = selectReminderMockObject("", "1", "PAYMENT", "AAABBB77Y66A444A", 3, "ALSDKdcoekroicjre200",
+				"ALSDKdcoek", "roicjre200");
+		test_messageEventKafkaConsumer_IsPaidFalse(payment, "2");
+	}
+
+	@Test
+	public void test_messageEventKafkaConsumer_Throw() throws Throwable {
+		Payment payment = selectReminderMockObject("", "1", "PAYMENT", "AAABBB77Y66A444A", 3, "ALSDKdcoekroicjre200",
+				"ALSDKdcoek", "roicjre200");
+		test_messageEventKafkaConsumer_toThrow(payment, "2");
+	}
+
 	@Test
 	public void test_messageEventKafkaConsumer_IdIsEqual() throws Throwable {
 		Payment payment = selectReminderMockObject("", "1", "PAYMENT", "AAABBB77Y66A444A", 3, "ALSDKdcoekroicjre200",
