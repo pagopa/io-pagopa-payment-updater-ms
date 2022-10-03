@@ -1,17 +1,22 @@
 package it.gov.pagopa.paymentupdater;
 
+import java.lang.reflect.UndeclaredThrowableException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -25,6 +30,10 @@ import it.gov.pagopa.paymentupdater.dto.payments.Creditor;
 import it.gov.pagopa.paymentupdater.dto.payments.PaymentRoot;
 import it.gov.pagopa.paymentupdater.dto.payments.Transfer;
 import it.gov.pagopa.paymentupdater.model.Payment;
+import it.gov.pagopa.paymentupdater.model.PaymentRetry;
+import it.gov.pagopa.paymentupdater.producer.PaymentProducer;
+import it.gov.pagopa.paymentupdater.repository.PaymentRepository;
+import it.gov.pagopa.paymentupdater.repository.PaymentRetryRepository;
 
 @SpringBootTest(classes = Application.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @RunWith(SpringRunner.class)
@@ -43,14 +52,16 @@ public class PaymentKafkaConsumerTest extends AbstractMock {
 	@Autowired
 	ObjectMapper mapper;
 
+	@MockBean
+	PaymentProducer producer;
+	
 	@Value("${kafka.paymentupdates}")
 	private String producerTopic;
 
-	public void test_paymentEventKafkaConsumer(List<Payment> payments)
-			throws InterruptedException, JsonProcessingException {
+	public void test_paymentEventKafkaConsumer(List<Payment> payments, boolean producerKo)
+			throws InterruptedException, JsonProcessingException, ExecutionException {
 		mockSaveWithResponse(selectReminderMockObject("", "1", "GENERIC", "AAABBB77Y66A444A", 3,
 				"ALSDK54654asdA1234567890200", "ALSDK54654asd", "A1234567890200"));
-
 		mockGetPaymentByRptId(payments);
 
 		Transfer transfer = getPaymentRoot().getTransferList().get(0);
@@ -58,9 +69,19 @@ public class PaymentKafkaConsumerTest extends AbstractMock {
 				transfer.getCompanyName().concat(
 						transfer.getFiscalCodePA().concat(
 								transfer.getRemittanceInformation().concat(transfer.getTransferCategory()))));
-		paymentEventKafkaConsumer.paymentKafkaListener(getPaymentRoot());
-		Assertions.assertNotNull(transferString);
-		Assertions.assertEquals(0L, paymentEventKafkaConsumer.getLatch().getCount());
+		
+		if (producerKo) {	
+			Mockito.when(mockPaymentRetryRepository.save(Mockito.any(PaymentRetry.class))).thenReturn(new PaymentRetry());
+			Mockito.when(producer.sendPaymentUpdate(Mockito.anyString(), Mockito.any(), Mockito.anyString())).thenThrow(new RuntimeException());
+			Assertions.assertThrows(RuntimeException.class,
+					() -> paymentEventKafkaConsumer.paymentKafkaListener(getPaymentRoot()));
+			
+		} else {
+			paymentEventKafkaConsumer.paymentKafkaListener(getPaymentRoot());
+			Assertions.assertNotNull(transferString);
+			Assertions.assertEquals(0L, paymentEventKafkaConsumer.getLatch().getCount());
+		}
+
 	}
 
 	public void test_paymentEventKafkaConsumerSkipPayment(List<Payment> payments)
@@ -88,11 +109,20 @@ public class PaymentKafkaConsumerTest extends AbstractMock {
 
 	@Test
 	public void test_paymentEventKafkaConsumerPaymentsIsNotEmpty()
-			throws InterruptedException, JsonProcessingException {
+			throws InterruptedException, JsonProcessingException, ExecutionException {
 		List<Payment> payments = new ArrayList<>();
 		payments.add(selectReminderMockObject("", "1", "GENERIC", "AAABBB77Y66A444A", 3, "ALSDKdcoekroicjre200",
 				"ALSDKdcoek", "roicjre200"));
-		test_paymentEventKafkaConsumer(payments);
+		test_paymentEventKafkaConsumer(payments, false);
+	}
+	
+	@Test
+	public void test_paymentEventKafkaConsumerPaymentsIsNotEmptyProducerKO()
+			throws InterruptedException, JsonProcessingException, ExecutionException {
+		List<Payment> payments = new ArrayList<>();
+		payments.add(selectReminderMockObject("", "1", "GENERIC", "AAABBB77Y66A444A", 3, "ALSDKdcoekroicjre200",
+				"ALSDKdcoek", "roicjre200"));
+		test_paymentEventKafkaConsumer(payments, true);
 	}
 
 	@Test
@@ -101,13 +131,13 @@ public class PaymentKafkaConsumerTest extends AbstractMock {
 		List<Payment> payments = new ArrayList<>();
 		payments.add(selectReminderMockObject("", "1", "GENERIC", "AAABBB77Y66A444A", 3, "ALSDKdcoekroicjre200",
 				"ALSDKdcoek", "roicjre200"));
-		test_paymentEventKafkaConsumer(payments);
+		test_paymentEventKafkaConsumerSkipPayment(payments);
 	}
 
 	@Test
-	public void test_paymentEventKafkaConsumerPaymentsIsEmpty() throws InterruptedException, JsonProcessingException {
+	public void test_paymentEventKafkaConsumerPaymentsIsEmpty() throws InterruptedException, JsonProcessingException, ExecutionException {
 		List<Payment> payments = new ArrayList<>();
-		test_paymentEventKafkaConsumer(payments);
+		test_paymentEventKafkaConsumer(payments, false);
 	}
 
 }

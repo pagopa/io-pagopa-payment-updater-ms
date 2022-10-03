@@ -79,9 +79,6 @@ public abstract class AbstractMock {
 	@Mock
 	PaymentServiceImpl paymentServiceImpl;
 
-	@Mock
-	PaymentProducer mockPaymentProducer;
-
 	@MockBean
 	protected DefaultApi mockDefaultApi;
 
@@ -313,6 +310,9 @@ public abstract class AbstractMock {
 		root.setDebtorPosition(position);
 		root.setCreditor(cred);
 		root.setTransferList(transferList);
+		PaymentInfo info = new PaymentInfo();
+		info.setPaymentDateTime(LocalDateTime.now().toString());
+		root.setPaymentInfo(info);
 		return root;
 	}
 
