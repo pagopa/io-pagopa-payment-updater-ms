@@ -54,6 +54,17 @@ public class MockControllerTest extends AbstractMock {
 	}
 	
 	@Test
+	public void callGetMessagePayment404() throws Exception {
+		mockFindIdWithResponse404();
+
+		MockHttpServletResponse response = mvc
+				.perform(get("/api/v1/payment/check/messages/ABC").accept(MediaType.APPLICATION_JSON)).andReturn()
+				.getResponse();
+		
+		assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+	}
+	
+	@Test
 	public void callCheckReady() throws Exception {
 		// when
 		MockHttpServletResponse response = mvc
