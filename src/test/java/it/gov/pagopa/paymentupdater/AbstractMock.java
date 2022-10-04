@@ -61,6 +61,7 @@ public abstract class AbstractMock {
 	@Value("${attempts.max}")
 	private int attemptsMax;
 
+
 	@Rule
 	public MockitoRule rule = MockitoJUnit.rule();
 
@@ -79,9 +80,6 @@ public abstract class AbstractMock {
 	@Mock
 	PaymentServiceImpl paymentServiceImpl;
 
-	@Mock
-	PaymentProducer mockPaymentProducer;
-
 	@MockBean
 	protected DefaultApi mockDefaultApi;
 
@@ -91,6 +89,10 @@ public abstract class AbstractMock {
 
 	protected void mockFindIdWithResponse(Payment returnReminder1) {
 		Mockito.when(mockRepository.findById(Mockito.anyString())).thenReturn(Optional.of(returnReminder1));
+	}
+	
+	protected void mockFindIdWithResponse404() {
+		Mockito.when(mockRepository.findById(Mockito.anyString())).thenReturn(Optional.ofNullable(null));
 	}
 
 	public void mockDelete(List<PaymentRetry> entity) {
@@ -313,6 +315,9 @@ public abstract class AbstractMock {
 		root.setDebtorPosition(position);
 		root.setCreditor(cred);
 		root.setTransferList(transferList);
+		PaymentInfo info = new PaymentInfo();
+		info.setPaymentDateTime(LocalDateTime.now().toString());
+		root.setPaymentInfo(info);
 		return root;
 	}
 

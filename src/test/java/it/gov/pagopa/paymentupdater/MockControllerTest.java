@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import it.gov.pagopa.paymentupdater.model.ApiPaymentMessage;
 import it.gov.pagopa.paymentupdater.model.Payment;
 import it.gov.pagopa.paymentupdater.producer.PaymentProducer;
 
@@ -37,14 +38,30 @@ public class MockControllerTest extends AbstractMock {
 
 	@Test
 	public void callGetMessagePayment() throws Exception {
-		Payment payment = new Payment();
+		Payment payment = selectReminderMockObject("", "1", "PAYMENT", "AAABBB77Y66A444A", 3,
+				"ALSDKdcoekroicjre200", "ALSDKdcoek", "roicjre200");
 		mockFindIdWithResponse(payment);
-		// when
+
 		MockHttpServletResponse response = mvc
 				.perform(get("/api/v1/payment/check/messages/ABC").accept(MediaType.APPLICATION_JSON)).andReturn()
 				.getResponse();
-		// then
+		
+		ApiPaymentMessage resp = mapper.readValue(response.getContentAsString(), ApiPaymentMessage.class);
+		assertThat(resp).isNotNull();
+		assertThat(resp.getFiscalCode()).isNotBlank();
+		assertThat(resp.getNoticeNumber()).isNotBlank();
 		assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+	}
+	
+	@Test
+	public void callGetMessagePayment404() throws Exception {
+		mockFindIdWithResponse404();
+
+		MockHttpServletResponse response = mvc
+				.perform(get("/api/v1/payment/check/messages/ABC").accept(MediaType.APPLICATION_JSON)).andReturn()
+				.getResponse();
+		
+		assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
 	}
 	
 	@Test

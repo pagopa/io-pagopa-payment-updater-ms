@@ -26,6 +26,7 @@ microservice-chart:
     host: "weubeta.payments.internal.io.pagopa.it"
     # path: '/api/v1/payment/(.*)'
     path: "/(api/v1/payment/.*)"
+
   resources:
     requests:
       memory: "512Mi"

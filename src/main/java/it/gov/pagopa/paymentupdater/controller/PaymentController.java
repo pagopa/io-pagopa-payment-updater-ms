@@ -32,7 +32,6 @@ public class PaymentController {
 
 	@GetMapping(value = "/check/messages/{messageId}")
 	public ResponseEntity<ApiPaymentMessage> getMessagePayment(@PathVariable String messageId) {
-		;
 		return paymentService.findById(messageId)
 				.map(pay -> ApiPaymentMessage.builder().messageId(pay.getId())
 						.dueDate(Optional.ofNullable(pay.getDueDate())
@@ -45,7 +44,7 @@ public class PaymentController {
 						.build())
 				.map(paymentMessage -> new ResponseEntity<>(paymentMessage, HttpStatus.OK))
 				.orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
-
+ 
 	}
 
 }
