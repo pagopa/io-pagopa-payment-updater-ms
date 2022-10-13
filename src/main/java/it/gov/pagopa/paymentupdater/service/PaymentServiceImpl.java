@@ -10,7 +10,6 @@ import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,12 +67,13 @@ public class PaymentServiceImpl implements PaymentService {
 		log.info("Saved payment id: {}", reminder.getId());
 	}
 
-	@Override
 
 	public ProxyResponse checkPayment(Payment payment)
 			throws JsonProcessingException, InterruptedException, ExecutionException {
 		ProxyResponse proxyResp = new ProxyResponse();
 		try {
+
+
 			ApiClient apiClient = new ApiClient();
 			if (enableRestKey) {
 				apiClient.addDefaultHeader("Ocp-Apim-Subscription-Key", proxyEndpointKey);
@@ -83,7 +83,7 @@ public class PaymentServiceImpl implements PaymentService {
 			defaultApi.setApiClient(apiClient);
 			PaymentRequestsGetResponse resp = defaultApi.getPaymentInfo(payment.getRptId(), Constants.X_CLIENT_ID);
 
-			LocalDate dueDate = PaymentUtil.getLocalDateFromString(resp.getDueDate());
+			LocalDate dueDate = PaymentUtil.getLocalDateFromString(resp.getDueDate());	
 			proxyResp.setDueDate(dueDate);
 
 			return proxyResp;
@@ -91,28 +91,27 @@ public class PaymentServiceImpl implements PaymentService {
 		}
 
 		catch (HttpServerErrorException errorException) {
-			// the reminder is already paid
-			ProxyPaymentResponse res = mapper.readValue(errorException.getResponseBodyAsString(),
-					ProxyPaymentResponse.class);
-			if (res.getDetail_v2() != null) {
-				if (Arrays.asList("PAA_PAGAMENTO_DUPLICATO", "PPT_RPT_DUPLICATA").contains(res.getDetail_v2())
-						&& errorException.getStatusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
 
+			ProxyPaymentResponse res = mapper.readValue(errorException.getResponseBodyAsString(), ProxyPaymentResponse.class);
+
+			if (res.getDetail_v2() != null) {
+				int code = errorException.getStatusCode().value();
+				if ((code == 400 || code == 404 || code == 409) && 
+						Arrays.asList("PAA_PAGAMENTO_DUPLICATO", "PPT_RPT_DUPLICATA", "PPT_PAGAMENTO_DUPLICATO").contains(res.getDetail_v2())) {
 					List<Payment> payments = paymentRepository.getPaymentByRptId(payment.getRptId());
 					payments.add(payment);
 					for (Payment pay : payments) {
 						pay.setPaidFlag(true);
 						LocalDate proxyDate = PaymentUtil.getLocalDateFromString(res.getDuedate());
-						PaymentUtil.checkDueDateForPayment(proxyDate, pay);
+						PaymentUtil.checkDueDateForPayment(proxyDate, pay);	
 						paymentRepository.save(pay);
 
 						PaymentMessage message = new PaymentMessage();
 						message.setMessageId(pay.getId());
-						message.setFiscalCode(pay.getFiscalCode());
 						message.setNoticeNumber(payment.getContent_paymentData_noticeNumber());
 						message.setPayeeFiscalCode(payment.getContent_paymentData_payeeFiscalCode());
-						message.setSource("payments");
-						PaymentUtil.checkDueDateForPaymentMessage(res.getDuedate(), message);
+						message.setSource("payments");			
+						PaymentUtil.checkDueDateForPaymentMessage(res.getDuedate(), message);							
 						producer.sendPaymentUpdate(mapper.writeValueAsString(message), kafkaTemplatePayments, topic);
 					}
 
@@ -120,13 +119,18 @@ public class PaymentServiceImpl implements PaymentService {
 					proxyResp.setDueDate(PaymentUtil.getLocalDateFromString(res.getDuedate()));
 					return proxyResp;
 				}
+				
 				proxyResp.setPaid(false);
 				return proxyResp;
+				
 			} else {
 				throw errorException;
 			}
+
 		}
+
 	}
+
 
 	@Override
 	public Optional<Payment> findById(String messageId) {

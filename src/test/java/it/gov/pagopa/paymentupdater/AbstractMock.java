@@ -118,7 +118,7 @@ public abstract class AbstractMock {
 	}
 
 	public void mockGetPaymentInfoIsPaidTrue() throws JsonProcessingException {
-		HttpServerErrorException errorResponse = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "",
+		HttpServerErrorException errorResponse = new HttpServerErrorException(HttpStatus.CONFLICT, "",
 				mapper.writeValueAsString(getProxyResponse()).getBytes(), Charset.defaultCharset());
 
 		Mockito.when(mockDefaultApi.getPaymentInfo(Mockito.anyString(), Mockito.anyString())).thenThrow(errorResponse);
@@ -127,7 +127,7 @@ public abstract class AbstractMock {
 	public void mockGetPaymentInfoIsNotPaid() throws JsonProcessingException {
 		ProxyPaymentResponse proxyResponse = getProxyResponse();
 		proxyResponse.setDetail_v2("PAA_PAGAMNETO_ANNULLATO");
-		HttpServerErrorException errorResponse = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "",
+		HttpServerErrorException errorResponse = new HttpServerErrorException(HttpStatus.CONFLICT, "",
 				mapper.writeValueAsString(proxyResponse).getBytes(), Charset.defaultCharset());
 
 		Mockito.when(mockDefaultApi.getPaymentInfo(Mockito.anyString(), Mockito.anyString())).thenThrow(errorResponse);
