@@ -29,8 +29,8 @@ public class MessageKafkaConsumer {
 	PaymentServiceImpl paymentServiceImpl;
 
 	private CountDownLatch latch = new CountDownLatch(1);
-	private String payload = null;
-
+	private ProxyResponse response = null;
+	
 	@KafkaListener(topics = "${kafka.message}", groupId = "consumer-message", containerFactory = "kafkaListenerContainerFactory", autoStartup = "${message.auto.start}")
 	public void messageKafkaListener(Payment paymentMessage) throws JsonProcessingException, InterruptedException, ExecutionException {
 		log.debug("Processing messageId=" + paymentMessage.getId() + " time=" + new Date().toString()
@@ -38,7 +38,6 @@ public class MessageKafkaConsumer {
 		if (Objects.nonNull(paymentMessage.getContent_type()) && paymentMessage.getContent_type().equals(MessageContentType.PAYMENT)) {
 			log.debug("Received message with id: {} ", paymentMessage.getId());
 			checkNullInMessage(paymentMessage);
-			payload = paymentMessage.toString();
 
 			if(paymentService.countById(paymentMessage.getId()) == 0) {
 
@@ -49,6 +48,7 @@ public class MessageKafkaConsumer {
 					PaymentUtil.checkDueDateForPayment(proxyResponse.getDueDate() , paymentMessage);			
 					paymentService.save(paymentMessage);	 		
 				}
+				response = proxyResponse;
 			}
 		}
 
@@ -59,8 +59,8 @@ public class MessageKafkaConsumer {
 		return latch;
 	}
 
-	public String getPayload() {
-		return payload;
+	public ProxyResponse getResponse() {
+		return response;
 	}
 
 }

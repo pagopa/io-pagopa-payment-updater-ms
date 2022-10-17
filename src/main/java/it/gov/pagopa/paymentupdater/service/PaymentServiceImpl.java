@@ -51,7 +51,9 @@ public class PaymentServiceImpl implements PaymentService {
 	private boolean enableRestKey;
 	@Value("${proxy_endpoint_subscription_key}")
 	private String proxyEndpointKey;
-
+	@Value("#{'${error_statuscode.values}'.split(',')}")
+	private String[] errorStatusCodeValues;
+	
 	@Autowired
 	PaymentProducer producer;
 	@Autowired
@@ -97,7 +99,7 @@ public class PaymentServiceImpl implements PaymentService {
 			if (res.getDetail_v2() != null) {
 				int code = errorException.getStatusCode().value();
 				if ((code == 400 || code == 404 || code == 409) && 
-						Arrays.asList("PAA_PAGAMENTO_DUPLICATO", "PPT_RPT_DUPLICATA", "PPT_PAGAMENTO_DUPLICATO").contains(res.getDetail_v2())) {
+						Arrays.asList(errorStatusCodeValues).contains(res.getDetail_v2())) {
 					List<Payment> payments = paymentRepository.getPaymentByRptId(payment.getRptId());
 					payments.add(payment);
 					for (Payment pay : payments) {

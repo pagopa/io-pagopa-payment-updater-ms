@@ -71,7 +71,7 @@ public class MessageKafkaConsumerTest extends AbstractMock {
 		mockGetPaymentInfo();
 		messageKafkaConsumer.messageKafkaListener(selectReminderMockObject("", "1", "PAYMENT", "AAABBB77Y66A444A", 3,
 				"ALSDKdcoekroicjre200", "ALSDKdcoek", "roicjre200"));
-		Assertions.assertTrue(messageKafkaConsumer.getPayload().contains("paidFlag=false"));
+		Assertions.assertFalse(messageKafkaConsumer.getResponse().isPaid());
 		Assertions.assertEquals(0L, messageKafkaConsumer.getLatch().getCount());
 	}
 
@@ -94,12 +94,11 @@ public class MessageKafkaConsumerTest extends AbstractMock {
 		mockSaveWithResponse(payment);
 
 		messageKafkaConsumer.messageKafkaListener(paymentMessage);
-		Assertions.assertTrue(messageKafkaConsumer.getPayload().contains("paidFlag=true"));
+		Assertions.assertTrue(messageKafkaConsumer.getResponse().isPaid());
 		Assertions.assertEquals(0L, messageKafkaConsumer.getLatch().getCount());
 	}
 
 	public void test_messageEventKafkaConsumer_IsPaidFalse(Payment payment, String idPaymentMessage) throws Throwable {
-
 		Payment paymentMessage = selectReminderMockObject("", idPaymentMessage, "PAYMENT", "AAABBB77Y66A444A", 3,
 				"ALSDKdcoekroicjre200", "ALSDKdcoek", "roicjre200");
 		paymentMessage.setPaidFlag(false);
@@ -117,7 +116,7 @@ public class MessageKafkaConsumerTest extends AbstractMock {
 		mockSaveWithResponse(payment);
 
 		messageKafkaConsumer.messageKafkaListener(paymentMessage);
-		Assertions.assertTrue(messageKafkaConsumer.getPayload().contains("paidFlag=false"));
+		Assertions.assertFalse(messageKafkaConsumer.getResponse().isPaid());
 		Assertions.assertEquals(0L, messageKafkaConsumer.getLatch().getCount());
 	}
 

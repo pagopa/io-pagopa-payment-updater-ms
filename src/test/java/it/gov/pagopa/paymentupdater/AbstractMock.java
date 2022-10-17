@@ -126,7 +126,7 @@ public abstract class AbstractMock {
 
 	public void mockGetPaymentInfoIsNotPaid() throws JsonProcessingException {
 		ProxyPaymentResponse proxyResponse = getProxyResponse();
-		proxyResponse.setDetail_v2("PAA_PAGAMNETO_ANNULLATO");
+		proxyResponse.setDetail_v2("PAA_PAGAMENTO_ANNULLATO");
 		HttpServerErrorException errorResponse = new HttpServerErrorException(HttpStatus.CONFLICT, "",
 				mapper.writeValueAsString(proxyResponse).getBytes(), Charset.defaultCharset());
 
