@@ -71,6 +71,7 @@ microservice-chart:
     MONGO_RETRY_COLLECTION_NAME: "payment-retry"
     IS_ACTIVE_MESSAGE_CONSUMER: "true"
     IS_ACTIVE_PAYMENT_CONSUMER: "true"
+    MAIN_LOGGING_LEVEL: "ERROR"
   envSecret:
     # required
     APPLICATIONINSIGHTS_CONNECTION_STRING: "appinsights-connection-string"
