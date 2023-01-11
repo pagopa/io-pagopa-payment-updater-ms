@@ -1,5 +1,8 @@
 package it.gov.pagopa.paymentupdater;
 
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -108,16 +111,11 @@ public class MessageKafkaConsumerTest extends AbstractMock {
 			mockSaveWithResponse(payment);
 		}
 
-		mockGetPaymentInfoIsNotPaid();
-		mockSaveWithResponse(payment);
-
-		List<Payment> payments = new ArrayList<>();
-		payments.add(payment);
-		mockGetPaymentByRptId(payments);
-		mockSaveWithResponse(payment);
+		mockGetPaymentInfoIsNotPaid("UNKNOWN");
 
 		messageKafkaConsumer.messageKafkaListener(paymentMessage);
 		Assertions.assertTrue(messageKafkaConsumer.getPayload().contains("paidFlag=false"));
+		verify(mockRepository, times(1)).save(paymentMessage);
 		Assertions.assertEquals(0L, messageKafkaConsumer.getLatch().getCount());
 	}
 
