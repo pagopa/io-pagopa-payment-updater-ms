@@ -23,7 +23,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -42,7 +41,6 @@ import it.gov.pagopa.paymentupdater.dto.payments.Transfer;
 import it.gov.pagopa.paymentupdater.dto.request.ProxyPaymentResponse;
 import it.gov.pagopa.paymentupdater.model.Payment;
 import it.gov.pagopa.paymentupdater.model.PaymentRetry;
-import it.gov.pagopa.paymentupdater.producer.PaymentProducer;
 import it.gov.pagopa.paymentupdater.repository.PaymentRepository;
 import it.gov.pagopa.paymentupdater.repository.PaymentRetryRepository;
 import it.gov.pagopa.paymentupdater.restclient.proxy.api.DefaultApi;
@@ -60,7 +58,6 @@ public abstract class AbstractMock {
 
 	@Value("${attempts.max}")
 	private int attemptsMax;
-
 
 	@Rule
 	public MockitoRule rule = MockitoJUnit.rule();
@@ -90,9 +87,13 @@ public abstract class AbstractMock {
 	protected void mockFindIdWithResponse(Payment returnReminder1) {
 		Mockito.when(mockRepository.findById(Mockito.anyString())).thenReturn(Optional.of(returnReminder1));
 	}
-	
+
 	protected void mockFindIdWithResponse404() {
 		Mockito.when(mockRepository.findById(Mockito.anyString())).thenReturn(Optional.ofNullable(null));
+	}
+
+	protected void mockCountWithResults(Integer count) {
+		Mockito.when(mockRepository.countById(Mockito.anyString())).thenReturn(count);
 	}
 
 	public void mockDelete(List<PaymentRetry> entity) {
@@ -124,13 +125,17 @@ public abstract class AbstractMock {
 		Mockito.when(mockDefaultApi.getPaymentInfo(Mockito.anyString(), Mockito.anyString())).thenThrow(errorResponse);
 	}
 
-	public void mockGetPaymentInfoIsNotPaid() throws JsonProcessingException {
+	public void mockGetPaymentInfoIsNotPaid(String responseDetail) throws JsonProcessingException {
 		ProxyPaymentResponse proxyResponse = getProxyResponse();
-		proxyResponse.setDetail_v2("PAA_PAGAMNETO_ANNULLATO");
+		proxyResponse.setDetail_v2(responseDetail);
 		HttpServerErrorException errorResponse = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "",
 				mapper.writeValueAsString(proxyResponse).getBytes(), Charset.defaultCharset());
 
 		Mockito.when(mockDefaultApi.getPaymentInfo(Mockito.anyString(), Mockito.anyString())).thenThrow(errorResponse);
+	}
+
+	public void mockGetPaymentInfoIsNotPaid() throws JsonProcessingException {
+		mockGetPaymentInfoIsNotPaid("PAA_PAGAMNETO_ANNULLATO");
 	}
 
 	public void mockGetPaymentInfoError() throws JsonProcessingException {

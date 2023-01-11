@@ -8,6 +8,7 @@ target
 .project
 .settings
 .factorypath
+.vscode/settings.json
 *.log
 *bin/
 /src/main/resources/avro/*

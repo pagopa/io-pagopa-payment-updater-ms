@@ -32,23 +32,26 @@ public class MessageKafkaConsumer {
 	private String payload = null;
 
 	@KafkaListener(topics = "${kafka.message}", groupId = "consumer-message", containerFactory = "kafkaListenerContainerFactory", autoStartup = "${message.auto.start}")
-	public void messageKafkaListener(Payment paymentMessage) throws JsonProcessingException, InterruptedException, ExecutionException {
+	public void messageKafkaListener(Payment paymentMessage)
+			throws JsonProcessingException, InterruptedException, ExecutionException {
 		log.debug("Processing messageId=" + paymentMessage.getId() + " time=" + new Date().toString()
 				+ " paymentMessageContentType= " + paymentMessage.getContent_type());
-		if (Objects.nonNull(paymentMessage.getContent_type()) && paymentMessage.getContent_type().equals(MessageContentType.PAYMENT)) {
+		if (Objects.nonNull(paymentMessage.getContent_type())
+				&& paymentMessage.getContent_type().equals(MessageContentType.PAYMENT)) {
 			log.debug("Received message with id: {} ", paymentMessage.getId());
 			checkNullInMessage(paymentMessage);
 			payload = paymentMessage.toString();
 
-			if(paymentService.countById(paymentMessage.getId()) == 0) {
+			if (paymentService.countById(paymentMessage.getId()) == 0) {
 
-				String rptId = paymentMessage.getContent_paymentData_payeeFiscalCode().concat(paymentMessage.getContent_paymentData_noticeNumber());
+				String rptId = paymentMessage.getContent_paymentData_payeeFiscalCode()
+						.concat(paymentMessage.getContent_paymentData_noticeNumber());
 				paymentMessage.setRptId(rptId);
 				ProxyResponse proxyResponse = paymentServiceImpl.checkPayment(paymentMessage);
 				if (!proxyResponse.isPaid()) {
-					PaymentUtil.checkDueDateForPayment(proxyResponse.getDueDate() , paymentMessage);			
-					paymentService.save(paymentMessage);	 		
+					PaymentUtil.checkDueDateForPayment(proxyResponse.getDueDate(), paymentMessage);
 				}
+				paymentService.save(paymentMessage);
 			}
 		}
 

@@ -1,6 +1,5 @@
 package it.gov.pagopa.paymentupdater;
 
-import java.lang.reflect.UndeclaredThrowableException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -8,7 +7,6 @@ import java.util.concurrent.ExecutionException;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,7 +14,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -32,8 +29,6 @@ import it.gov.pagopa.paymentupdater.dto.payments.Transfer;
 import it.gov.pagopa.paymentupdater.model.Payment;
 import it.gov.pagopa.paymentupdater.model.PaymentRetry;
 import it.gov.pagopa.paymentupdater.producer.PaymentProducer;
-import it.gov.pagopa.paymentupdater.repository.PaymentRepository;
-import it.gov.pagopa.paymentupdater.repository.PaymentRetryRepository;
 
 @SpringBootTest(classes = Application.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @RunWith(SpringRunner.class)
@@ -54,7 +49,7 @@ public class PaymentKafkaConsumerTest extends AbstractMock {
 
 	@MockBean
 	PaymentProducer producer;
-	
+
 	@Value("${kafka.paymentupdates}")
 	private String producerTopic;
 
@@ -69,13 +64,15 @@ public class PaymentKafkaConsumerTest extends AbstractMock {
 				transfer.getCompanyName().concat(
 						transfer.getFiscalCodePA().concat(
 								transfer.getRemittanceInformation().concat(transfer.getTransferCategory()))));
-		
-		if (producerKo) {	
-			Mockito.when(mockPaymentRetryRepository.save(Mockito.any(PaymentRetry.class))).thenReturn(new PaymentRetry());
-			Mockito.when(producer.sendPaymentUpdate(Mockito.anyString(), Mockito.any(), Mockito.anyString())).thenThrow(new RuntimeException());
+
+		if (producerKo) {
+			Mockito.when(mockPaymentRetryRepository.save(Mockito.any(PaymentRetry.class)))
+					.thenReturn(new PaymentRetry());
+			Mockito.when(producer.sendPaymentUpdate(Mockito.anyString(), Mockito.any(), Mockito.anyString()))
+					.thenThrow(new RuntimeException());
 			Assertions.assertThrows(RuntimeException.class,
 					() -> paymentEventKafkaConsumer.paymentKafkaListener(getPaymentRoot()));
-			
+
 		} else {
 			paymentEventKafkaConsumer.paymentKafkaListener(getPaymentRoot());
 			Assertions.assertNotNull(transferString);
@@ -115,7 +112,7 @@ public class PaymentKafkaConsumerTest extends AbstractMock {
 				"ALSDKdcoek", "roicjre200"));
 		test_paymentEventKafkaConsumer(payments, false);
 	}
-	
+
 	@Test
 	public void test_paymentEventKafkaConsumerPaymentsIsNotEmptyProducerKO()
 			throws InterruptedException, JsonProcessingException, ExecutionException {
@@ -135,7 +132,8 @@ public class PaymentKafkaConsumerTest extends AbstractMock {
 	}
 
 	@Test
-	public void test_paymentEventKafkaConsumerPaymentsIsEmpty() throws InterruptedException, JsonProcessingException, ExecutionException {
+	public void test_paymentEventKafkaConsumerPaymentsIsEmpty()
+			throws InterruptedException, JsonProcessingException, ExecutionException {
 		List<Payment> payments = new ArrayList<>();
 		test_paymentEventKafkaConsumer(payments, false);
 	}
