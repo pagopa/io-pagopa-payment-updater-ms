@@ -92,6 +92,10 @@ public abstract class AbstractMock {
 		Mockito.when(mockRepository.findById(Mockito.anyString())).thenReturn(Optional.ofNullable(null));
 	}
 
+	protected void mockCountWithResults(Integer count) {
+		Mockito.when(mockRepository.countById(Mockito.anyString())).thenReturn(count);
+	}
+
 	public void mockDelete(List<PaymentRetry> entity) {
 		for (PaymentRetry e : entity) {
 			doNothing().when(mockPaymentRetryRepository).delete(e);

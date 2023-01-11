@@ -156,6 +156,17 @@ public class MessageKafkaConsumerTest extends AbstractMock {
 	}
 
 	@Test
+	public void test_messageEventKafkaConsumer_AlreadyPresent() throws Throwable {
+		Payment payment = selectReminderMockObject("", "1", "PAYMENT", "AAABBB77Y66A444A", 3, "ALSDKdcoekroicjre200",
+				"ALSDKdcoek", "roicjre200");
+		mockSaveWithResponse(payment);
+		mockCountWithResults(1);
+		messageKafkaConsumer.messageKafkaListener(payment);
+		verify(mockRepository, times(0)).save(payment);
+		Assertions.assertEquals(0L, messageKafkaConsumer.getLatch().getCount());
+	}
+
+	@Test
 	public void test_messageEventKafkaConsumer_Throw() throws Throwable {
 		Payment payment = selectReminderMockObject("", "1", "PAYMENT", "AAABBB77Y66A444A", 3, "ALSDKdcoekroicjre200",
 				"ALSDKdcoek", "roicjre200");
