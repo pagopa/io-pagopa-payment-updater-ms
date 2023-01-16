@@ -2,7 +2,7 @@ microservice-chart:
   namespace: "payments"
   image:
     repository: "iopcommonacr.azurecr.io/io-pagopa-payment-updater-ms"
-    tag: "2.4.1"
+    tag: "2.5.0"
     pullPolicy: Always
   livenessProbe:
     httpGet:
