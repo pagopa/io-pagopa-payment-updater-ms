@@ -57,7 +57,7 @@ microservice-chart:
     KAFKA_PAYMENTS: "nodo-dei-pagamenti-biz-evt" # event-hub pagopa
     KAFKA_PAYMENT_UPDATES: "payment-updates" # event-hub internal
     MONGO_DATABASE: "db" # mongodb internal
-    MONGO_COLLECTION_NAME: "payment" # mongodb internal
+    MONGO_COLLECTION_NAME: "payment-sharded" # mongodb internal
     ENABLE_REST_KEY: "true" # use pagopa proxy
     PROXY_ENDPOINT: "https://api.platform.pagopa.it/checkout/auth/payments/v1"
     RESTCALL_INTERVAL_FUNCTION: "10000"
