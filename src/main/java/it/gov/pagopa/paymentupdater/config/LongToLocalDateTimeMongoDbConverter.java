@@ -13,16 +13,17 @@ public class LongToLocalDateTimeMongoDbConverter implements Converter<Long, Loca
 
   @Override
   public LocalDateTime convert(Long source) {
-    if (source > 9999999999L) {
-      // timestamp greater than 10 digits are in milliseconds or microseconds
-      // we have to take just the seconds because the greatest 10 digits seconds
-      // based timestamp (9999999999) will represent Saturday 20 November 2286 17:46:39
-      String stringified = String.valueOf(source);
-      stringified = stringified.substring(0, 10);
-      source = Long.valueOf(stringified);
-    }
-    Long secondsTimestamp = source;
-    return Optional.ofNullable(source).map(date -> LocalDateTime.ofInstant(Instant.ofEpochSecond(secondsTimestamp),
-      TimeZone.getDefault().toZoneId())).orElse(null);
+    return Optional.ofNullable(source).map(date -> {
+      if (date > 9999999999L) {
+        // timestamp greater than 10 digits are in milliseconds or microseconds
+        // we have to take just the seconds because the greatest 10 digits seconds
+        // based timestamp (9999999999) will represent Saturday 20 November 2286 17:46:39
+        String stringified = String.valueOf(date);
+        stringified = stringified.substring(0, 10);
+        date = Long.valueOf(stringified);
+      }
+      return LocalDateTime.ofInstant(Instant.ofEpochSecond(date),
+        TimeZone.getDefault().toZoneId());
+    }).orElse(null);
   }
 }
