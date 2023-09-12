@@ -13,7 +13,7 @@ public class IntegerToLocalDateTimeMongoDbConverter implements Converter<Integer
 
   @Override
   public LocalDateTime convert(Integer source) {
-    return Optional.ofNullable(source).map(date -> LocalDateTime.ofInstant(Instant.ofEpochSecond(source),
+    return Optional.ofNullable(source).map(date -> LocalDateTime.ofInstant(Instant.ofEpochSecond(date),
       TimeZone.getDefault().toZoneId())).orElse(null);
   }
 }
