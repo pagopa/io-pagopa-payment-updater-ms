@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.stream.Stream;
 
 @RunWith(SpringRunner.class)
 public class CustomDateTimeDeserializerTest {
@@ -42,23 +44,26 @@ public class CustomDateTimeDeserializerTest {
 
 
   @Test
-  public void ShouldDecodeALocalDateTimeFromANumericString_Ok() {
-    String numericTimestamp = "{\"value\":\"1662588000000\"}";
-    LocalDateTime localDateTime = deserializeLocalDateTimeFromString(numericTimestamp);
-    Assertions.assertEquals(localDateTime, LocalDateTime.parse("2022-09-07T22:00"));
-  }
-
-  @Test
-  public void ShouldDecodeALocalDateTimeFromAnISODateTimeString_Ok() {
-    String numericTimestamp = "{\"value\":\"2023-08-31T12:00:00.000+00:00\"}";
-    LocalDateTime localDateTime = deserializeLocalDateTimeFromString(numericTimestamp);
-    Assertions.assertEquals(localDateTime, LocalDateTime.parse("2023-08-31T12:00:00.000"));
+  public void ShouldDecodeALocalDateTimeFromStringWithKnownFormat_Ok() {
+    Stream.of(new String[][]{
+      {"2023-08-31T12:00:00.000Z", "2023-08-31T12:00"},
+      {"2023-08-31T12:00:00.000+00.00", "2023-08-31T12:00"},
+      {"1662588000000", "2022-09-07T22:00"},
+      {"0", "1970-01-01T00:00"}
+    }).forEach((String[] kv) -> {
+      LocalDateTime localDateTime = deserializeLocalDateTimeFromString(kv[0]);
+      Assertions.assertEquals(localDateTime, LocalDateTime.parse(kv[1]));
+    });
   }
 
   @Test
   public void ShouldThrowForUnrecognizedString_Ok() {
-    String numericTimestamp = "{\"value\":\"notadate\"}";
-    Assertions.assertThrows(RuntimeException.class, () -> deserializeLocalDateTimeFromString(numericTimestamp));
+    Stream.of(new String[]{
+      "{\"value\":\"notadatelongversion\"}",
+      "{\"value\":\"notadate\"}"
+    }).forEach((String v) -> {
+      Assertions.assertThrows(DateTimeParseException.class, () -> deserializeLocalDateTimeFromString(v));
+    });
   }
 
   @SneakyThrows({JsonParseException.class, IOException.class})

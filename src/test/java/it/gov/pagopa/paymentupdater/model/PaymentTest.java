@@ -44,6 +44,7 @@ public class PaymentTest {
       {"2023-08-31T12:00:00.000Z", "2023-08-31T12:00"},
       {"2023-08-31T12:00:00.000+00.00", "2023-08-31T12:00"},
       {"1662588000000", "2022-09-07T22:00"},
+      {"0", "1970-01-01T00:00"}
     }).forEach((String[] kv) -> {
       String paymentJson = JsonModels.getPaymentWithGivenDueDate(kv[0]);
       Payment payment = null;
@@ -58,9 +59,14 @@ public class PaymentTest {
   }
 
   @Test
-  public void ShouldFailDecodingAPaymentWithWrongFormatDueDate_Ok() throws JsonProcessingException {
-    String paymentJson = JsonModels.getPaymentWithGivenDueDate("notadate");
-    Assertions.assertThrows(JsonMappingException.class, () -> mapper.readValue(paymentJson, Payment.class));
+  public void ShouldFailDecodingAPaymentWithWrongFormatDueDate_Ok() {
+    Stream.of(new String[]{
+      "notadatelongversion",
+      "notadate"
+    }).forEach((String v) -> {
+      String paymentJson = JsonModels.getPaymentWithGivenDueDate(v);
+      Assertions.assertThrows(JsonMappingException.class, () -> mapper.readValue(paymentJson, Payment.class));
+    });
   }
 
 }
