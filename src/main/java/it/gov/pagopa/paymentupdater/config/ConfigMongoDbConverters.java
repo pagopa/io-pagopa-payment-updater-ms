@@ -13,7 +13,8 @@ public class ConfigMongoDbConverters {
   public MongoCustomConversions mongoCustomConversions() {
 
     return new MongoCustomConversions(
-        Arrays.asList(
-            new LongToLocalDateTimeMongoDbConverter()));
+      Arrays.asList(
+        new LongToLocalDateTimeMongoDbConverter(),
+        new IntegerToLocalDateTimeMongoDbConverter()));
   }
 }
