@@ -2,6 +2,8 @@ package it.gov.pagopa.paymentupdater.config;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.TimeZone;
 
@@ -22,8 +24,7 @@ public class LongToLocalDateTimeMongoDbConverter implements Converter<Long, Loca
         stringified = stringified.substring(0, 10);
         date = Long.valueOf(stringified);
       }
-      return LocalDateTime.ofInstant(Instant.ofEpochSecond(date),
-        TimeZone.getDefault().toZoneId());
+      return LocalDateTime.ofEpochSecond(date,0, ZoneOffset.UTC);
     }).orElse(null);
   }
 }

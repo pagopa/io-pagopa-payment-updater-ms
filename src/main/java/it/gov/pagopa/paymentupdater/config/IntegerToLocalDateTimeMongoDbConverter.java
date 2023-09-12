@@ -5,6 +5,8 @@ import org.springframework.data.convert.ReadingConverter;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.TimeZone;
 
@@ -13,7 +15,6 @@ public class IntegerToLocalDateTimeMongoDbConverter implements Converter<Integer
 
   @Override
   public LocalDateTime convert(Integer source) {
-    return Optional.ofNullable(source).map(date -> LocalDateTime.ofInstant(Instant.ofEpochSecond(date),
-      TimeZone.getDefault().toZoneId())).orElse(null);
+    return Optional.ofNullable(source).map(date -> LocalDateTime.ofEpochSecond(date, 0, ZoneOffset.UTC)).orElse(null);
   }
 }
