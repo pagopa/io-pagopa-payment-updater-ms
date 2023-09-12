@@ -8,7 +8,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.stream.Stream;
 
 @RunWith(SpringRunner.class)
 public class LongToLocalDateTimeMongoDbConverterTest {
