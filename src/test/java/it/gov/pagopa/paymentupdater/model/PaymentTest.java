@@ -17,6 +17,8 @@ import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.stream.Stream;
 
 @RunWith(SpringRunner.class)
 
@@ -37,24 +39,22 @@ public class PaymentTest {
 
 
   @Test
-  public void ShouldDecodeAPaymentWithUTCDueDate_Ok() throws JsonProcessingException {
-    String paymentJson = JsonModels.getPaymentWithGivenDueDate("2023-08-31T12:00:00.000Z");
-    Payment payment = mapper.readValue(paymentJson, Payment.class);
-    Assertions.assertEquals(payment.getDueDate(), LocalDateTime.parse("2023-08-31T12:00"));
-  }
-
-  @Test
-  public void ShouldDecodeAPaymentWithUTCTimezoneDueDate_Ok() throws JsonProcessingException {
-    String paymentJson = JsonModels.getPaymentWithGivenDueDate("2023-08-31T12:00:00.000+00.00");
-    Payment payment = mapper.readValue(paymentJson, Payment.class);
-    Assertions.assertEquals(payment.getDueDate(), LocalDateTime.parse("2023-08-31T12:00"));
-  }
-
-  @Test
-  public void ShouldDecodeAPaymentWithNumericDueDate_Ok() throws JsonProcessingException {
-    String paymentJson = JsonModels.getPaymentWithGivenDueDate("1662588000000");
-    Payment payment = mapper.readValue(paymentJson, Payment.class);
-    Assertions.assertEquals(payment.getDueDate(), LocalDateTime.parse("2022-09-07T22:00"));
+  public void ShouldDecodeAPaymentWithKnownFormatDueDate_Ok() {
+    Stream.of(new String[][]{
+      {"2023-08-31T12:00:00.000Z", "2023-08-31T12:00"},
+      {"2023-08-31T12:00:00.000+00.00", "2023-08-31T12:00"},
+      {"1662588000000", "2022-09-07T22:00"},
+    }).forEach((String[] kv) -> {
+      String paymentJson = JsonModels.getPaymentWithGivenDueDate(kv[0]);
+      Payment payment = null;
+      try {
+        payment = mapper.readValue(paymentJson, Payment.class);
+      } catch (JsonProcessingException e) {
+        // should never happen for well formatted dates
+        throw new RuntimeException(e);
+      }
+      Assertions.assertEquals(payment.getDueDate(), LocalDateTime.parse(kv[1]));
+    });
   }
 
   @Test

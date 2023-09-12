@@ -15,6 +15,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@SuppressWarnings("java:S116")
 public class Message {
 
 	@Id
