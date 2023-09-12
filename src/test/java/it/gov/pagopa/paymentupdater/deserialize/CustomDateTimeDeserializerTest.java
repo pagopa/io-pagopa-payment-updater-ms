@@ -46,10 +46,10 @@ public class CustomDateTimeDeserializerTest {
   @Test
   public void ShouldDecodeALocalDateTimeFromStringWithKnownFormat_Ok() {
     Stream.of(new String[][]{
-      {"2023-08-31T12:00:00.000Z", "2023-08-31T12:00"},
-      {"2023-08-31T12:00:00.000+00.00", "2023-08-31T12:00"},
-      {"1662588000000", "2022-09-07T22:00"},
-      {"0", "1970-01-01T00:00"}
+      {"{\"value\":\"2023-08-31T12:00:00.000Z\"}", "2023-08-31T12:00"},
+      {"{\"value\":\"2023-08-31T12:00:00.000+00.00\"}", "2023-08-31T12:00"},
+      {"{\"value\":\"1662588000000\"}", "2022-09-07T22:00"},
+      {"{\"value\":\"0\"}", "1970-01-01T00:00"}
     }).forEach((String[] kv) -> {
       LocalDateTime localDateTime = deserializeLocalDateTimeFromString(kv[0]);
       Assertions.assertEquals(localDateTime, LocalDateTime.parse(kv[1]));
