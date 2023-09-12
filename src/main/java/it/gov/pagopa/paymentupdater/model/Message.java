@@ -2,8 +2,6 @@ package it.gov.pagopa.paymentupdater.model;
 
 import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import it.gov.pagopa.paymentupdater.deserialize.CustomDateTimeDeserializer;
 import org.springframework.data.annotation.Id;
 
 import dto.FeatureLevelType;
@@ -12,10 +10,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@SuppressWarnings("java:S116")
+@Getter 
+@Setter 
+@NoArgsConstructor 
 public class Message {
 
 	@Id
@@ -23,8 +20,7 @@ public class Message {
 	protected String senderServiceId;
 	protected String senderUserId="undefined";
 	protected int timeToLiveSeconds;
-  @JsonDeserialize(using = CustomDateTimeDeserializer.class)
-  private LocalDateTime dueDate;
+	private LocalDateTime dueDate;
 	protected long createdAt;
 	protected boolean isPending = true;
 	protected String content_subject;
@@ -35,5 +31,5 @@ public class Message {
 	protected String content_paymentData_payeeFiscalCode;
 	protected String fiscalCode;
 	protected FeatureLevelType feature_level_type;
-
+	
 }
