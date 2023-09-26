@@ -114,7 +114,7 @@ public abstract class AbstractMock {
 		PaymentRequestsGetResponse paymentRequest = new PaymentRequestsGetResponse();
 		paymentRequest.setDueDate("2022-05-15");
 		paymentRequest.setIbanAccredito("IT12345");
-		Mockito.when(mockDefaultApi.getPaymentInfo(Mockito.anyString(), Mockito.anyString()))
+		Mockito.when(mockDefaultApi.getPaymentInfo(Mockito.anyString()))
 				.thenReturn(paymentRequest);
 	}
 
@@ -122,7 +122,7 @@ public abstract class AbstractMock {
 		HttpServerErrorException errorResponse = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "",
 				mapper.writeValueAsString(getProxyResponse()).getBytes(), Charset.defaultCharset());
 
-		Mockito.when(mockDefaultApi.getPaymentInfo(Mockito.anyString(), Mockito.anyString())).thenThrow(errorResponse);
+		Mockito.when(mockDefaultApi.getPaymentInfo(Mockito.anyString())).thenThrow(errorResponse);
 	}
 
 	public void mockGetPaymentInfoIsNotPaid(String responseDetail) throws JsonProcessingException {
@@ -131,7 +131,7 @@ public abstract class AbstractMock {
 		HttpServerErrorException errorResponse = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "",
 				mapper.writeValueAsString(proxyResponse).getBytes(), Charset.defaultCharset());
 
-		Mockito.when(mockDefaultApi.getPaymentInfo(Mockito.anyString(), Mockito.anyString())).thenThrow(errorResponse);
+		Mockito.when(mockDefaultApi.getPaymentInfo(Mockito.anyString())).thenThrow(errorResponse);
 	}
 
 	public void mockGetPaymentInfoIsNotPaid() throws JsonProcessingException {
@@ -144,7 +144,7 @@ public abstract class AbstractMock {
 		HttpServerErrorException errorResponse = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "",
 				mapper.writeValueAsString(proxyResponse).getBytes(), Charset.defaultCharset());
 
-		Mockito.when(mockDefaultApi.getPaymentInfo(Mockito.anyString(), Mockito.anyString())).thenThrow(errorResponse);
+		Mockito.when(mockDefaultApi.getPaymentInfo(Mockito.anyString())).thenThrow(errorResponse);
 	}
 
 	protected Payment selectReminderMockObject(String type, String id, String contentType, String fiscalCode,

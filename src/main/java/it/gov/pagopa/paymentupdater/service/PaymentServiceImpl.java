@@ -81,7 +81,7 @@ public class PaymentServiceImpl implements PaymentService {
 			apiClient.setBasePath(urlProxy);
 
 			defaultApi.setApiClient(apiClient);
-			PaymentRequestsGetResponse resp = defaultApi.getPaymentInfo(payment.getRptId(), Constants.X_CLIENT_ID);
+			PaymentRequestsGetResponse resp = defaultApi.getPaymentInfo(payment.getRptId());
 
 			LocalDate dueDate = PaymentUtil.getLocalDateFromString(resp.getDueDate());
 			proxyResp.setDueDate(dueDate);
