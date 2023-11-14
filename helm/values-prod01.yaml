@@ -36,8 +36,8 @@ microservice-chart:
       cpu: "200m"
   autoscaling:
     enable: true
-    minReplica: 2
-    maxReplica: 10
+    minReplica: 1
+    maxReplica: 1
     pollingInterval: 30 # seconds
     cooldownPeriod: 300 # seconds
     triggers:
@@ -73,8 +73,8 @@ microservice-chart:
     RETRY_INTERVAL_FUNCTION: "10000"
     QUARTZ_SCHEDULER_TIMER_NOTIFY: "0 /3 * ? * *"
     MONGO_RETRY_COLLECTION_NAME: "payment-retry"
-    IS_ACTIVE_MESSAGE_CONSUMER: "true"
-    IS_ACTIVE_PAYMENT_CONSUMER: "true"
+    IS_ACTIVE_MESSAGE_CONSUMER: "false"
+    IS_ACTIVE_PAYMENT_CONSUMER: "false"
     MAIN_LOGGING_LEVEL: "ERROR"
   envSecret:
     # required
