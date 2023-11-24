@@ -2,8 +2,8 @@ apiVersion: v2
 name: io-pagopa-payment-updater-ms
 description: io-pagopa-payment-updater-ms
 type: application
-version: 2.6.3
-appVersion: 2.6.3
+version: 2.6.4
+appVersion: 2.6.4
 dependencies:
   - name: microservice-chart
     version: 5.2.0
