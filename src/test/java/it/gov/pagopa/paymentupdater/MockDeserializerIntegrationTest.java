@@ -1,5 +1,6 @@
 package it.gov.pagopa.paymentupdater;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,7 +40,6 @@ import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.applicationinsights.core.dependencies.apachecommons.io.output.ByteArrayOutputStream;
 
 import dto.message;
 import it.gov.pagopa.paymentupdater.deserialize.AvroMessageDeserializer;
@@ -64,7 +64,7 @@ public class MockDeserializerIntegrationTest extends AbstractMock {
 
 	@Autowired
 	CommonErrorHandler commonErrorHandler;
-  
+
 	@Mock
 	ObjectMapper mapper;
 
@@ -122,12 +122,12 @@ public class MockDeserializerIntegrationTest extends AbstractMock {
 
 	protected void mockKafkaDeserializationErrorHandler(Exception unexpectedException, boolean recordIsNotNull) {
 		List<ConsumerRecord<?, ?>> records = new ArrayList<>();
-		
+
 		if (recordIsNotNull) {
 			ConsumerRecord<?, ?> record = new ConsumerRecord<>("message", 0, 439198, null, null);
 			records.add(record);
 		}
-		
+
 		Map<String, Object> props = new HashMap<>();
 		props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "PLAINTEXT://localhost:9065");
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
