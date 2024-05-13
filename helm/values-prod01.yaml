@@ -53,7 +53,7 @@ microservice-chart:
     WEBSITE_SITE_NAME: "io-p-weuprod01-pagopa-payment-updater-ms" # required to show cloud role name in application insights
     # app specific
     BOOTSTRAP_SERVER_MESSAGE: "io-p-messages-weu-prod01-evh-ns.servicebus.windows.net:9093" # event-hub write by fn-messages-cqrs
-    BOOTSTRAP_SERVER_PAYMENT: "pagopa-p-evh-ns01.servicebus.windows.net:9093" # event-hub pagopa
+    BOOTSTRAP_SERVER_PAYMENT: "pagopa-p-weu-core-evh-ns03.servicebus.windows.net:9093" # event-hub pagopa
     BOOTSTRAP_SERVER_PAYMENTUPDATES: "io-p-payments-weu-prod01-evh-ns.servicebus.windows.net:9093" # event-hub internal
     CHECKPOINT_SIZE: "10"
     KAFKA_MESSAGE: "messages" # event-hub write by fn-messages-cqrs
@@ -81,7 +81,7 @@ microservice-chart:
     APPLICATIONINSIGHTS_CONNECTION_STRING: "appinsights-connection-string"
     # app specific
     KAFKA_URL_MESSAGE: "messages-io-p-messages-weu-prod01-evh-jaas-connection-string" # event-hub write by fn-messages-cqrs
-    KAFKA_URL_PAYMENT: "nodo-dei-pagamenti-biz-evt-pagopa-p-evh-ns01-evh-jaas-connection-string" # event-hub pagopa
+    KAFKA_URL_PAYMENT: "nodo-dei-pagamenti-biz-evt-pagopa-p-evh-ns03-evh-jaas-connection-string" # event-hub pagopa
     KAFKA_URL_PAYMENTUPDATES: "payment-updates-io-payment-updater-weu-prod01-evh-jaas-connection-string" # event-hub internal
     MONGO_DATABASE_URI: "io-p-payments-mongodb-account-connection-string" # mongodb internal
     PROXY_ENDPOINT_SUBSCRIPTION_KEY: "pagopa-proxy-prod-subscription-key"
