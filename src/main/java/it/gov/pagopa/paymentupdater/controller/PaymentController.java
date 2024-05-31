@@ -47,15 +47,20 @@ public class PaymentController {
 
     if (!payment.isPaidFlag()) {
       // FIX: sometimes we miss a payment event so if this payment is not paid we try to call paymentService
-      ProxyResponse proxyResponse = paymentServiceImpl.checkPayment(payment);
-      payment.setPaidFlag(proxyResponse.isPaid());
-      paymentService.save(payment);
+      if (paymentServiceImpl != null) {
+        ProxyResponse proxyResponse = paymentServiceImpl.checkPayment(payment);
+        if (proxyResponse != null) {
+          payment.setPaidFlag(proxyResponse.isPaid());
+          paymentService.save(payment);
+        }
+      }
     }
 
-    ApiPaymentMessage apiPaymentMessage = ApiPaymentMessage.builder().messageId(payment.getId())
+    ApiPaymentMessage apiPaymentMessage = ApiPaymentMessage.builder()
+      .messageId(payment.getId())
       .dueDate(Optional.ofNullable(payment.getDueDate())
         .map(LocalDateTime::toLocalDate)
-        .orElseGet(() -> null))
+        .orElse(null))
       .paid(payment.isPaidFlag())
       .amount(payment.getContent_paymentData_amount())
       .fiscalCode(payment.getFiscalCode())

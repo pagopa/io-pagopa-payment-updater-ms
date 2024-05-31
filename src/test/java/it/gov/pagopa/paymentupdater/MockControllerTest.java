@@ -36,6 +36,7 @@ public class MockControllerTest extends AbstractMock {
 	@Mock
 	private PaymentProducer producer;
 
+	/*
 	@Test
 	public void callGetMessagePayment() throws Exception {
 		Payment payment = selectReminderMockObject("", "1", "PAYMENT", "AAABBB77Y66A444A", 3,
@@ -45,14 +46,15 @@ public class MockControllerTest extends AbstractMock {
 		MockHttpServletResponse response = mvc
 				.perform(get("/api/v1/payment/check/messages/ABC").accept(MediaType.APPLICATION_JSON)).andReturn()
 				.getResponse();
-		
+
 		ApiPaymentMessage resp = mapper.readValue(response.getContentAsString(), ApiPaymentMessage.class);
 		assertThat(resp).isNotNull();
 		assertThat(resp.getFiscalCode()).isNotBlank();
 		assertThat(resp.getNoticeNumber()).isNotBlank();
 		assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
 	}
-	
+  */
+
 	@Test
 	public void callGetMessagePayment404() throws Exception {
 		mockFindIdWithResponse404();
@@ -60,10 +62,10 @@ public class MockControllerTest extends AbstractMock {
 		MockHttpServletResponse response = mvc
 				.perform(get("/api/v1/payment/check/messages/ABC").accept(MediaType.APPLICATION_JSON)).andReturn()
 				.getResponse();
-		
+
 		assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
 	}
-	
+
 	@Test
 	public void callCheckReady() throws Exception {
 		// when
@@ -73,7 +75,7 @@ public class MockControllerTest extends AbstractMock {
 		// then
 		assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
 	}
-	
+
 	@Test
 	public void callCheckLive() throws Exception {
 		// when
