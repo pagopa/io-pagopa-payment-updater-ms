@@ -50,7 +50,9 @@ public class MessageKafkaConsumer {
 				ProxyResponse proxyResponse = paymentServiceImpl.checkPayment(paymentMessage);
 				if (!proxyResponse.isPaid()) {
 					PaymentUtil.checkDueDateForPayment(proxyResponse.getDueDate(), paymentMessage);
-				}
+				} else {
+          paymentMessage.setPaidFlag(proxyResponse.isPaid());
+        }
 				paymentService.save(paymentMessage);
 			}
 		}
