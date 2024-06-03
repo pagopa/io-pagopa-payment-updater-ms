@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
+import it.gov.pagopa.paymentupdater.restclient.proxy.model.PaymentStatusFaultPaymentProblemJson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -80,19 +81,15 @@ public class PaymentServiceImpl implements PaymentService {
       proxyResp.setDueDate(dueDate);
       return proxyResp;
     } catch (HttpStatusCodeException errorException) {
-      // manage 4XX errors
-      ProxyPaymentResponse res = mapper.readValue(errorException.getResponseBodyAsString(),
-        ProxyPaymentResponse.class);
-      if (res.getDetail_v2() != null) {
-        if (Arrays.asList("PAA_PAGAMENTO_DUPLICATO", "PPT_RPT_DUPLICATA", "PPT_PAGAMENTO_DUPLICATO").contains(res.getDetail_v2())
-          && errorException.getStatusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
+      if (errorException.getStatusCode() == HttpStatus.CONFLICT) {
+        PaymentStatusFaultPaymentProblemJson res = mapper.readValue(errorException.getResponseBodyAsString(),
+          PaymentStatusFaultPaymentProblemJson.class);
+        if (res.getDetailV2() != null && Arrays.asList("PAA_PAGAMENTO_DUPLICATO", "PPT_RPT_DUPLICATA", "PPT_PAGAMENTO_DUPLICATO").contains(res.getDetailV2())) {
           // the payment message is already paid
           List<Payment> payments = paymentRepository.getPaymentByRptId(payment.getRptId());
           payments.add(payment);
           for (Payment pay : payments) {
             pay.setPaidFlag(true);
-            LocalDate proxyDate = PaymentUtil.getLocalDateFromString(res.getDuedate());
-            PaymentUtil.checkDueDateForPayment(proxyDate, pay);
             paymentRepository.save(pay);
 
             PaymentMessage message = new PaymentMessage();
@@ -101,15 +98,14 @@ public class PaymentServiceImpl implements PaymentService {
             message.setNoticeNumber(payment.getContent_paymentData_noticeNumber());
             message.setPayeeFiscalCode(payment.getContent_paymentData_payeeFiscalCode());
             message.setSource("payments");
-            PaymentUtil.checkDueDateForPaymentMessage(res.getDuedate(), message);
             producer.sendPaymentUpdate(mapper.writeValueAsString(message), kafkaTemplatePayments, topic);
           }
-
           proxyResp.setPaid(true);
-          proxyResp.setDueDate(PaymentUtil.getLocalDateFromString(res.getDuedate()));
+          proxyResp.setDueDate(payment.getDueDate().toLocalDate());
           return proxyResp;
         }
         proxyResp.setPaid(false);
+        proxyResp.setDueDate(payment.getDueDate().toLocalDate());
         return proxyResp;
       } else {
         throw errorException;
