@@ -44,8 +44,6 @@ public class PaymentServiceImpl implements PaymentService {
 	ObjectMapper mapper;
 	@Autowired
 	RestTemplate restTemplate;
-	@Value("${payment.request}")
-	private String urlProxy;
 	@Value("${kafka.paymentupdates}")
 	private String topic;
 	@Value("${enable_rest_key}")
@@ -78,7 +76,6 @@ public class PaymentServiceImpl implements PaymentService {
 			if (enableRestKey) {
 				apiClient.addDefaultHeader("Ocp-Apim-Subscription-Key", proxyEndpointKey);
 			}
-			apiClient.setBasePath(urlProxy);
 
 			defaultApi.setApiClient(apiClient);
 			PaymentRequestsGetResponse resp = defaultApi.getPaymentInfo(payment.getRptId());
