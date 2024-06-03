@@ -83,9 +83,12 @@ public class PaymentServiceImpl implements PaymentService {
     } catch (HttpStatusCodeException errorException) {
       ProxyPaymentResponse res = mapper.readValue(errorException.getResponseBodyAsString(),
         ProxyPaymentResponse.class);
+      log.error("DetailV2 is {}", res.getDetailV2());
+      log.error("StatusCode is {}", errorException.getStatusCode());
       if (res.getDetailV2() != null) {
         if (Arrays.asList(HttpStatus.CONFLICT, HttpStatus.INTERNAL_SERVER_ERROR).contains(errorException.getStatusCode())
           && Arrays.asList("PAA_PAGAMENTO_DUPLICATO", "PPT_RPT_DUPLICATA", "PPT_PAGAMENTO_DUPLICATO").contains(res.getDetailV2())) {
+          log.error("MANAGING CONFLICT");
           // the payment message is already paid
           List<Payment> payments = paymentRepository.getPaymentByRptId(payment.getRptId());
           payments.add(payment);
