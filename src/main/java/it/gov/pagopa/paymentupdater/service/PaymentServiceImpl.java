@@ -84,7 +84,7 @@ public class PaymentServiceImpl implements PaymentService {
       ProxyPaymentResponse res = mapper.readValue(errorException.getResponseBodyAsString(),
         ProxyPaymentResponse.class);
       if (res.getDetail_v2() != null) {
-        if (Arrays.asList("PAA_PAGAMENTO_DUPLICATO", "PPT_RPT_DUPLICATA").contains(res.getDetail_v2())
+        if (Arrays.asList("PAA_PAGAMENTO_DUPLICATO", "PPT_RPT_DUPLICATA", "PPT_PAGAMENTO_DUPLICATO").contains(res.getDetail_v2())
           && errorException.getStatusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
           // the payment message is already paid
           List<Payment> payments = paymentRepository.getPaymentByRptId(payment.getRptId());
