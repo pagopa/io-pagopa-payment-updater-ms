@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -27,10 +28,8 @@ import it.gov.pagopa.paymentupdater.dto.request.ProxyPaymentResponse;
 import it.gov.pagopa.paymentupdater.model.Payment;
 import it.gov.pagopa.paymentupdater.producer.PaymentProducer;
 import it.gov.pagopa.paymentupdater.repository.PaymentRepository;
-import it.gov.pagopa.paymentupdater.restclient.proxy.ApiClient;
 import it.gov.pagopa.paymentupdater.restclient.proxy.api.DefaultApi;
 import it.gov.pagopa.paymentupdater.restclient.proxy.model.PaymentRequestsGetResponse;
-import it.gov.pagopa.paymentupdater.util.Constants;
 import it.gov.pagopa.paymentupdater.util.PaymentUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -80,7 +79,7 @@ public class PaymentServiceImpl implements PaymentService {
       LocalDate dueDate = PaymentUtil.getLocalDateFromString(resp.getDueDate());
       proxyResp.setDueDate(dueDate);
       return proxyResp;
-    } catch (HttpClientErrorException errorException) {
+    } catch (HttpStatusCodeException errorException) {
       // manage 4XX errors
       ProxyPaymentResponse res = mapper.readValue(errorException.getResponseBodyAsString(),
         ProxyPaymentResponse.class);
@@ -115,9 +114,6 @@ public class PaymentServiceImpl implements PaymentService {
       } else {
         throw errorException;
       }
-    } catch (HttpServerErrorException errorException) {
-      // manage 5XX errors
-      throw errorException;
     }
   }
 

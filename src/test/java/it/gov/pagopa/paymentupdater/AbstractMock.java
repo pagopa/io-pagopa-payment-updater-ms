@@ -149,8 +149,7 @@ public abstract class AbstractMock {
 
 	protected Payment selectReminderMockObject(String type, String id, String contentType, String fiscalCode,
 			int numReminder, String rptId, String paymentDataNoticeNumber, String paymentDataFiscalCode) {
-		Payment returnReminder1 = null;
-		returnReminder1 = new Payment();
+		Payment returnReminder1 = new Payment();
 		returnReminder1.setId(id);
 		returnReminder1.setContent_type(MessageContentType.valueOf(contentType));
 		returnReminder1.setFiscalCode(fiscalCode);
