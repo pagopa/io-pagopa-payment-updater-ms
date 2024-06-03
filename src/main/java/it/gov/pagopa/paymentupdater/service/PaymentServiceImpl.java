@@ -71,6 +71,7 @@ public class PaymentServiceImpl implements PaymentService {
 
   public ProxyResponse checkPayment(Payment payment)
     throws JsonProcessingException, InterruptedException, ExecutionException {
+    LocalDate paymentDueDate = payment.getDueDate() != null ? payment.getDueDate().toLocalDate() : null;
     ProxyResponse proxyResp = new ProxyResponse();
     try {
       if (enableRestKey) {
@@ -102,11 +103,11 @@ public class PaymentServiceImpl implements PaymentService {
             producer.sendPaymentUpdate(mapper.writeValueAsString(message), kafkaTemplatePayments, topic);
           }
           proxyResp.setPaid(true);
-          proxyResp.setDueDate(payment.getDueDate().toLocalDate());
+          proxyResp.setDueDate(paymentDueDate);
           return proxyResp;
         }
         proxyResp.setPaid(false);
-        proxyResp.setDueDate(payment.getDueDate().toLocalDate());
+        proxyResp.setDueDate(paymentDueDate);
         return proxyResp;
       } else {
         throw errorException;
