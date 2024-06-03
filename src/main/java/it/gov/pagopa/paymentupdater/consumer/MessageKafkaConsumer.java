@@ -22,50 +22,50 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MessageKafkaConsumer {
 
-	@Autowired
-	PaymentService paymentService;
+  @Autowired
+  PaymentService paymentService;
 
-	@Autowired
-	PaymentServiceImpl paymentServiceImpl;
+  @Autowired
+  PaymentServiceImpl paymentServiceImpl;
 
-	private CountDownLatch latch = new CountDownLatch(1);
-	private String payload = null;
+  private CountDownLatch latch = new CountDownLatch(1);
+  private String payload = null;
 
-	@KafkaListener(topics = "${kafka.message}", groupId = "consumer-message", containerFactory = "kafkaListenerContainerFactory", autoStartup = "${message.auto.start}")
-	public void messageKafkaListener(Payment paymentMessage)
-			throws JsonProcessingException, InterruptedException, ExecutionException {
-		log.debug("Processing messageId=" + paymentMessage.getId() + " time=" + new Date().toString()
-				+ " paymentMessageContentType= " + paymentMessage.getContent_type());
-		if (Objects.nonNull(paymentMessage.getContent_type())
-				&& paymentMessage.getContent_type().equals(MessageContentType.PAYMENT)) {
-			log.debug("Received message with id: {} ", paymentMessage.getId());
-			checkNullInMessage(paymentMessage);
-			payload = paymentMessage.toString();
+  @KafkaListener(topics = "${kafka.message}", groupId = "consumer-message", containerFactory = "kafkaListenerContainerFactory", autoStartup = "${message.auto.start}")
+  public void messageKafkaListener(Payment paymentMessage)
+    throws JsonProcessingException, InterruptedException, ExecutionException {
+    log.debug("Processing messageId=" + paymentMessage.getId() + " time=" + new Date().toString()
+      + " paymentMessageContentType= " + paymentMessage.getContent_type());
+    if (Objects.nonNull(paymentMessage.getContent_type())
+      && paymentMessage.getContent_type().equals(MessageContentType.PAYMENT)) {
+      log.debug("Received message with id: {} ", paymentMessage.getId());
+      checkNullInMessage(paymentMessage);
+      payload = paymentMessage.toString();
 
-			if (paymentService.countById(paymentMessage.getId()) == 0) {
+      if (paymentService.countById(paymentMessage.getId()) == 0) {
 
-				String rptId = paymentMessage.getContent_paymentData_payeeFiscalCode()
-						.concat(paymentMessage.getContent_paymentData_noticeNumber());
-				paymentMessage.setRptId(rptId);
-				ProxyResponse proxyResponse = paymentServiceImpl.checkPayment(paymentMessage);
-				if (!proxyResponse.isPaid()) {
-					PaymentUtil.checkDueDateForPayment(proxyResponse.getDueDate(), paymentMessage);
-				} else {
-          paymentMessage.setPaidFlag(proxyResponse.isPaid());
+        String rptId = paymentMessage.getContent_paymentData_payeeFiscalCode()
+          .concat(paymentMessage.getContent_paymentData_noticeNumber());
+        paymentMessage.setRptId(rptId);
+        ProxyResponse proxyResponse = paymentServiceImpl.checkPayment(paymentMessage);
+        if (proxyResponse.isPaid()) {
+          paymentMessage.setPaidFlag(true);
+        } else {
+          PaymentUtil.checkDueDateForPayment(proxyResponse.getDueDate(), paymentMessage);
         }
-				paymentService.save(paymentMessage);
-			}
-		}
+        paymentService.save(paymentMessage);
+      }
+    }
 
-		this.latch.countDown();
-	}
+    this.latch.countDown();
+  }
 
-	public CountDownLatch getLatch() {
-		return latch;
-	}
+  public CountDownLatch getLatch() {
+    return latch;
+  }
 
-	public String getPayload() {
-		return payload;
-	}
+  public String getPayload() {
+    return payload;
+  }
 
 }

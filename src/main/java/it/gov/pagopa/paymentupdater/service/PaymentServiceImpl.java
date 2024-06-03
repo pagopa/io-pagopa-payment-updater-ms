@@ -81,10 +81,11 @@ public class PaymentServiceImpl implements PaymentService {
       proxyResp.setDueDate(dueDate);
       return proxyResp;
     } catch (HttpStatusCodeException errorException) {
-      if (errorException.getStatusCode() == HttpStatus.CONFLICT) {
-        PaymentStatusFaultPaymentProblemJson res = mapper.readValue(errorException.getResponseBodyAsString(),
-          PaymentStatusFaultPaymentProblemJson.class);
-        if (res.getDetailV2() != null && Arrays.asList("PAA_PAGAMENTO_DUPLICATO", "PPT_RPT_DUPLICATA", "PPT_PAGAMENTO_DUPLICATO").contains(res.getDetailV2())) {
+      ProxyPaymentResponse res = mapper.readValue(errorException.getResponseBodyAsString(),
+        ProxyPaymentResponse.class);
+      if (res.getDetailV2() != null) {
+        if (Arrays.asList(HttpStatus.CONFLICT, HttpStatus.INTERNAL_SERVER_ERROR).contains(errorException.getStatusCode())
+          && Arrays.asList("PAA_PAGAMENTO_DUPLICATO", "PPT_RPT_DUPLICATA", "PPT_PAGAMENTO_DUPLICATO").contains(res.getDetailV2())) {
           // the payment message is already paid
           List<Payment> payments = paymentRepository.getPaymentByRptId(payment.getRptId());
           payments.add(payment);

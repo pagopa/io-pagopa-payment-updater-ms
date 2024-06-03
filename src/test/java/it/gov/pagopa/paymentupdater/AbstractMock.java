@@ -119,7 +119,7 @@ public abstract class AbstractMock {
 	}
 
 	public void mockGetPaymentInfoIsPaidTrue() throws JsonProcessingException {
-		HttpServerErrorException errorResponse = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "",
+		HttpServerErrorException errorResponse = new HttpServerErrorException(HttpStatus.CONFLICT, "",
 				mapper.writeValueAsString(getProxyResponse()).getBytes(), Charset.defaultCharset());
 
 		Mockito.when(mockDefaultApi.getPaymentInfo(Mockito.anyString())).thenThrow(errorResponse);
@@ -127,20 +127,16 @@ public abstract class AbstractMock {
 
 	public void mockGetPaymentInfoIsNotPaid(String responseDetail) throws JsonProcessingException {
 		ProxyPaymentResponse proxyResponse = getProxyResponse();
-		proxyResponse.setDetail_v2(responseDetail);
+		proxyResponse.setDetailV2(responseDetail);
 		HttpServerErrorException errorResponse = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "",
 				mapper.writeValueAsString(proxyResponse).getBytes(), Charset.defaultCharset());
 
 		Mockito.when(mockDefaultApi.getPaymentInfo(Mockito.anyString())).thenThrow(errorResponse);
 	}
 
-	public void mockGetPaymentInfoIsNotPaid() throws JsonProcessingException {
-		mockGetPaymentInfoIsNotPaid("PAA_PAGAMNETO_ANNULLATO");
-	}
-
 	public void mockGetPaymentInfoError() throws JsonProcessingException {
 		ProxyPaymentResponse proxyResponse = getProxyResponse();
-		proxyResponse.setDetail_v2(null);
+		proxyResponse.setDetailV2(null);
 		HttpServerErrorException errorResponse = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "",
 				mapper.writeValueAsString(proxyResponse).getBytes(), Charset.defaultCharset());
 
@@ -201,9 +197,7 @@ public abstract class AbstractMock {
 
 	protected ProxyPaymentResponse getProxyResponse() {
 		ProxyPaymentResponse paymentResponse = new ProxyPaymentResponse();
-		paymentResponse.setCodiceContestoPagamento("");
-		paymentResponse.setImportoSingoloVersamento("20");
-		paymentResponse.setDetail_v2("PPT_RPT_DUPLICATA");
+		paymentResponse.setDetailV2("PPT_RPT_DUPLICATA");
 		paymentResponse.setDetail("");
 		paymentResponse.setInstance("");
 		paymentResponse.setStatus(500);
