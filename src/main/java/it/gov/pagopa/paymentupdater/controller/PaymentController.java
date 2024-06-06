@@ -45,15 +45,10 @@ public class PaymentController {
     if (payment == null)
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
-    if (!payment.isPaidFlag()) {
-      // FIX: sometimes we miss a payment event so if this payment is not paid we try to call paymentService
-      if (paymentServiceImpl != null) {
-        ProxyResponse proxyResponse = paymentServiceImpl.checkPayment(payment);
-        if (proxyResponse != null) {
-          payment.setPaidFlag(proxyResponse.isPaid());
-          paymentService.save(payment);
-        }
-      }
+    ProxyResponse proxyResponse = paymentServiceImpl.checkPayment(payment);
+    if (proxyResponse != null) {
+      payment.setPaidFlag(proxyResponse.isPaid());
+      paymentService.save(payment);
     }
 
     ApiPaymentMessage apiPaymentMessage = ApiPaymentMessage.builder()

@@ -68,7 +68,6 @@ public class PaymentServiceImpl implements PaymentService {
   }
 
   @Override
-
   public ProxyResponse checkPayment(Payment payment)
     throws JsonProcessingException, InterruptedException, ExecutionException {
     LocalDate paymentDueDate = payment.getDueDate() != null ? payment.getDueDate().toLocalDate() : null;
