@@ -112,32 +112,32 @@ stages:
               FORCE_REPLACE_DOCKER_IMAGE: ${{ parameters.FORCE_REPLACE_DOCKER_IMAGE }}
 
   # Deploy
-  - stage: "Deploy"
-    dependsOn: "Build"
-    variables:
-      deploy_version: $[ stageDependencies.Build.build.outputs['deploy_version_decision.value'] ]
-    jobs:
-      - deployment: "deploy"
-        pool:
-          name: io-prod-linux
-        environment: PROD
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - checkout: self
-                  displayName: "Checkout"
-                - template: templates/helm-microservice-chart-setup/template.yaml@pagopaCommons
-                  parameters:
-                    DEPLOY_VERSION: $(deploy_version)
-                - template: templates/helm-microservice-chart-deploy/template.yaml@pagopaCommons
-                  parameters:
-                    DO_DEPLOY: ${{ parameters.ENVIRONMENT_WEU_PROD_01 }}
-                    ENV: PROD_01
-                    KUBERNETES_SERVICE_CONN: ${{ variables.KUBERNETES_SERVICE_CONN_WEU_PROD_01 }}
-                    NAMESPACE: $(NAMESPACE)
-                    APP_NAME: $(DOCKER_IMAGE_NAME)
-                    VALUE_FILE: "helm/values-prod01.yaml"
-                    DEPLOY_VERSION: $(deploy_version)
-                    APPINSIGHTS_SERVICE_CONN: ${{ variables.APPINSIGHTS_SERVICE_CONN_PROD }}
-                    APPINSIGHTS_RESOURCE_ID: ${{ variables.APPINSIGHTS_RESOURCE_ID_PROD }}
+  # - stage: "Deploy"
+  #   dependsOn: "Build"
+  #   variables:
+  #     deploy_version: $[ stageDependencies.Build.build.outputs['deploy_version_decision.value'] ]
+  #   jobs:
+  #     - deployment: "deploy"
+  #       pool:
+  #         name: io-prod-linux
+  #       environment: PROD
+  #       strategy:
+  #         runOnce:
+  #           deploy:
+  #             steps:
+  #               - checkout: self
+  #                 displayName: "Checkout"
+  #               - template: templates/helm-microservice-chart-setup/template.yaml@pagopaCommons
+  #                 parameters:
+  #                   DEPLOY_VERSION: $(deploy_version)
+  #               - template: templates/helm-microservice-chart-deploy/template.yaml@pagopaCommons
+  #                 parameters:
+  #                   DO_DEPLOY: ${{ parameters.ENVIRONMENT_WEU_PROD_01 }}
+  #                   ENV: PROD_01
+  #                   KUBERNETES_SERVICE_CONN: ${{ variables.KUBERNETES_SERVICE_CONN_WEU_PROD_01 }}
+  #                   NAMESPACE: $(NAMESPACE)
+  #                   APP_NAME: $(DOCKER_IMAGE_NAME)
+  #                   VALUE_FILE: "helm/values-prod01.yaml"
+  #                   DEPLOY_VERSION: $(deploy_version)
+  #                   APPINSIGHTS_SERVICE_CONN: ${{ variables.APPINSIGHTS_SERVICE_CONN_PROD }}
+  #                   APPINSIGHTS_RESOURCE_ID: ${{ variables.APPINSIGHTS_RESOURCE_ID_PROD }}
