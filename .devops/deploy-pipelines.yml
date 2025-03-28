@@ -5,9 +5,7 @@ variables:
   DOCKER_IMAGE_NAME: "$(TF_DOCKER_IMAGE_NAME)"
   CONTAINER_REGISTRY_FQDN_PROD: "$(TF_CONTAINER_REGISTRY_FQDN_PROD)"
   CONTAINER_REGISTRY_SERVICE_CONN_PROD: "$(TF_CONTAINER_REGISTRY_SERVICE_CONN_PROD)"
-  KUBERNETES_SERVICE_CONN_WEU_BETA: "$(TF_KUBERNETES_SERVICE_CONN_WEU_BETA)"
   KUBERNETES_SERVICE_CONN_WEU_PROD_01: "$(TF_KUBERNETES_SERVICE_CONN_WEU_PROD_01)"
-  KUBERNETES_SERVICE_CONN_WEU_PROD_02: "$(TF_KUBERNETES_SERVICE_CONN_WEU_PROD_02)"
   APPINSIGHTS_SERVICE_CONN_PROD: "$(TF_APPINSIGHTS_SERVICE_CONN_PROD)"
   APPINSIGHTS_RESOURCE_ID_PROD: "$(TF_APPINSIGHTS_RESOURCE_ID_PROD)"
 
@@ -34,24 +32,10 @@ parameters:
     values:
       - False
       - True
-  - name: "ENVIRONMENT_WEU_BETA"
-    displayName: "Deploy to weu-beta"
-    type: boolean
-    default: True
-    values:
-      - False
-      - True
   - name: "ENVIRONMENT_WEU_PROD_01"
     displayName: "Deploy to weu-prod-01"
     type: boolean
     default: True
-    values:
-      - False
-      - True
-  - name: "ENVIRONMENT_WEU_PROD_02"
-    displayName: "Deploy to weu-prod-02"
-    type: boolean
-    default: False
     values:
       - False
       - True
@@ -146,17 +130,6 @@ stages:
                 - template: templates/helm-microservice-chart-setup/template.yaml@pagopaCommons
                   parameters:
                     DEPLOY_VERSION: $(deploy_version)
-                - template: templates/helm-microservice-chart-deploy/template.yaml@pagopaCommons
-                  parameters:
-                    DO_DEPLOY: ${{ parameters.ENVIRONMENT_WEU_BETA }}
-                    ENV: BETA
-                    KUBERNETES_SERVICE_CONN: ${{ variables.KUBERNETES_SERVICE_CONN_WEU_BETA }}
-                    NAMESPACE: $(NAMESPACE)
-                    APP_NAME: $(DOCKER_IMAGE_NAME)
-                    VALUE_FILE: "helm/values-beta.yaml"
-                    DEPLOY_VERSION: $(deploy_version)
-                    APPINSIGHTS_SERVICE_CONN: ${{ variables.APPINSIGHTS_SERVICE_CONN_PROD }}
-                    APPINSIGHTS_RESOURCE_ID: ${{ variables.APPINSIGHTS_RESOURCE_ID_PROD }}
                 - template: templates/helm-microservice-chart-deploy/template.yaml@pagopaCommons
                   parameters:
                     DO_DEPLOY: ${{ parameters.ENVIRONMENT_WEU_PROD_01 }}
